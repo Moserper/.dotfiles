@@ -1,0 +1,32 @@
+[core]
+	excludesfile = /Users/Moserper/.gitignore_global
+	pager = less -F -X
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[user]
+	name = Moserper
+	email = 33244723+Moserper@users.noreply.github.com
+[commit]
+	template = /Users/Moserper/.stCommitMsg
+[credential]
+	helper = store
+[pager]
+	diff = true
+[init]
+	defaultBranch = main
+[web]
+	browser = ch
+[browser "ch"]
+	cmd = open -a \"/Applications/Google Chrome.app\"
+[alias]
+	browse = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')\"; }; f"
+	pr = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')/compare/$(git config --get branch.$(git branch --show-current).merge | cut -d / -f 3-)?expand=1\"; }; f"
+	ignore-list = "! cd -- \"${GIT_PREFIX:-.}\" && git ls-files -v ${1:-.} | sed -n -e \"s,^[a-z] \\(.*\\)$,${GIT_PREFIX:-./}\\1,p\" && git status --ignored --porcelain ${1:-.} 2>/dev/null | sed -n -e \"s/^\\(\\!\\! \\)\\(.*\\)$/\\2/p\" #"
+[pull]
+	ff = true
+[fetch]
+	prune = true
