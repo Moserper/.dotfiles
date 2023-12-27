@@ -4,7 +4,12 @@ alias air='$(go env GOPATH)/bin/air'
 alias branch='git branch --show-current'
 alias browse=""
 alias ls="ls -al --color"
-alias vim="lvim"
+alias vim="nvim"
 
 # docker
 alias drun='docker run --rm -it -v "${PWD}":/app -w /app'
+
+#git
+#alias gsb='_fzf_git_branch | xargs -I % git checkout %'
+alias gsb='_fzf_git_branch | sed "s/remotes\/origin\///" | xargs -I % git checkout %'
+

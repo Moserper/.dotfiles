@@ -41,7 +41,7 @@ nnoremap <leader><Up> :resize +5<cr>
 nnoremap <leader><Down> :resize -5<cr>
 nnoremap <leader><Right> :vertical resize +5<cr>
 
-nnoremap <C-r> "hy:%s/<C-r>h//g<left><left>
+nnoremap <leader>r "hy:%s/<C-r>h//g<left><left>
 vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
 
 let g:airline_powerline_fonts = 1

@@ -31,3 +31,6 @@ vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww ~/.local/scripts/tmux-sessi
 
 vim.keymap.set("n", "<leader>c", "<Plug>(comment_toggle_linewise_current)")
 vim.keymap.set("v", "<leader>c", "<Plug>(comment_toggle_linewise_visual)")
+
+-- terminal
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")

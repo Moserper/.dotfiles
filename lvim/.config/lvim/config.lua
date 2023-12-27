@@ -6,6 +6,8 @@ require('user.which-key')
 require('user.statusline')
 require('user.plugin.telescope')
 
+require("luasnip/loaders/from_vscode").load { paths = { "~/.config/lvim/snippets/my-snippets" } }
+
 -- lvim.builtin.telescope.pickers.find_files = {
 --   layout_strategy = "horizontal",
 --   layout_config = {

@@ -1,3 +1,31 @@
+function branch_out_of_date() {
+  # Get the current branch name
+  current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+  # Check if the current branch exists
+  if [ -z "$current_branch" ]; then
+    echo "You are not on a Git branch."
+  fi
+  local get_branch=${1:-"dev"}
+  echo $get_branch
+
+  # Fetch the latest changes from the remote repository
+  git fetch origin
+
+  # Compare the current branch with "dev" branch
+  commits=$(git rev-list --left-right --count HEAD...origin/dev | awk '{print $2}')
+
+  if [ "$commits" -gt 0 ]; then
+    echo "need merge or rebase ⚙️"
+    git fetch origin ${get_branch}:${get_branch}
+    git rebase ${get_branch}
+    return 1 # return fales
+  else
+    echo "pass ✅"
+    return 0  # return true
+  fi
+}
+
 # find shorthand
 function f() {
 	find . -name "$1" 2>&1 | grep -v 'Permission denied'
@@ -8,4 +36,26 @@ function remove() {
   find . -name "$1" -type d -prune -print -exec rm -rf '{}' \;
 }
 
+
+function terraform_ariaround_dev() {
+    # "GCP_ORG_ID": "969993563465",
+json_object_one_line_cat=$(cat <<EOF
+ {
+    "MUI_DATAGRID_LICENSE_KEY": "9183c1f34828df4696eaab8c62c89bbbT1JERVI6Mjg5MjksRVhQSVJZPTE2NjIyMDM0MjUwMDAsS0VZVkVSU0lPTj0x",
+    "VERCEL_TEAM_ID": "team_fBzvPP8ecd2D6LV1AfYukUNJ",
+    "VERCEL_API_TOKEN": "NhmGMBOBLhnwLrheUbAsh79l",
+    "MONGODB_ATLAS_PUBLIC_KEY": "rkumnuqw",
+    "MONGODB_ATLAS_PRIVATE_KEY": "9e898ce9-8e66-48a4-acb5-d3571bfb31d2",
+    "GCP_BILLING_ACCOUNT": "0188EC-3D11C1-1B252E",
+    "DATABASE_MONGODB_URI": "mongodb+srv://ariaround:M1YWTOEvvKJTFOf4@ariaround-cluster.r8nfxhm.mongodb.net/ariaround?retryWrites=true&w=majority"
+  }
+EOF
+)
+  echo $json_object_one_line_cat | jq -r 'keys[] as $k | "-var=\"\($k)=\(.[$k])\""' | xargs
+} 
+
+
+function git_files() {
+  gh pr view | awk '/^state:\t/{s=$2} /^url:\t/{u=$2} END{if(s=="OPEN") print u"/files"}' | pbcopy
+}
 

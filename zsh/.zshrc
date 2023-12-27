@@ -1,3 +1,4 @@
+zmodload zsh/zprof
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -13,6 +14,7 @@ fi
 #
 #
 # Path to your oh-my-zsh installation.
+# setopt HIST_EXPIRE_DUPS_FIRST
 export ZSH="/Users/Moserper/.oh-my-zsh"
 export CLOUDSDK_PYTHON=python3
 # Set name of the theme to load --- if set to "random", it will
@@ -20,7 +22,6 @@ export CLOUDSDK_PYTHON=python3
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="robbyrussell"
-
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -86,7 +87,7 @@ plugins=(
   vscode
   zsh-syntax-highlighting
   zsh-autosuggestions
-  zsh-history-substring-search
+  # zsh-history-substring-search
   # globalias
 )
 
@@ -120,7 +121,6 @@ source $ZSH/oh-my-zsh.sh
 
 
 source ~/.zprofile
-# source ~/.bash_profile
 
 source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
 POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
@@ -139,11 +139,6 @@ if [ -f '/Users/Moserper/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-function file_folder() {
-  fzf-cd-widget
-}
-zle -N file_folder
 
 _fzf_comprun() {
   local command=$1
@@ -171,7 +166,6 @@ _fzf_compgen_dir() {
   eval fd --type d --hidden --follow "$EXCLUDE_FILE" . "$1"
 }
 
-
 # export CONFIGURATION="--search-path $HOME/.config --search-path $HOME/downloads --search-path $HOME/google_drive --search-path /etc"
 
 # export FZF_DEFAULT_COMMAND='find . -type f' \
@@ -185,24 +179,46 @@ _fzf_compgen_dir() {
 # export FZF_CTRL_T_COMMAND="$RG_PREFIX --files"
 
 # export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE"
-
+#
 export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE --max-depth 4"
 
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+export FZF_CTRL_R_OPTS="
+  --preview 'echo {}' --preview-window up:3:hidden:wrap
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+  --color header:italic
+  --header 'Press CTRL-Y to copy command into clipboard'
+  --layout=reverse
+  "
+
 export FZF_ALT_C_COMMAND="fd --type d -H --no-ignore-vcs $EXCLUDE_FILE --max-depth 4"
 export FZF_ALT_C_OPTS="--layout=reverse --inline-info"
 
 
-bindkey '' file_folder
+# Git integration with fzf
+_fzf_git_branch() {
+    git branch --all | grep -v "/HEAD" | sed "s/.* //" | sort -u | \
+    fzf
+    # fzf --preview "echo {} | xargs -I % git show --color=always --stat %" --preview-window=up:30%
+}
+
+bindkey '^[]' fzf-cd-widget
 
 bindkey "^b" backward-word
+bindkey "^[b" backward-char
 bindkey "^f" forward-word
+bindkey "^[f" forward-char
+
+bindkey "^[e" redo
 bindkey "^d" kill-word
 bindkey "^h" delete-char-or-list
 
-# bindkey "^D" backward-delete-char
-# bindkey "^f" forward-char
-
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
+
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/local/bin/terraform terraform
+
 
