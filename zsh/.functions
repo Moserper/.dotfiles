@@ -1,0 +1,158 @@
+# github
+
+fetch_origin() {
+  # Get the current branch name
+  current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  echo "Current branch: $current_branch"
+
+  # Check if the current branch exists
+  if [ -z "$current_branch" ]; then
+    echo "You are not currently on a Git branch."
+  fi
+
+  local target_branch=${1:-"dev"}
+  echo "Target branch: $target_branch"
+
+  # Fetch the latest changes from the remote repository
+  git fetch origin
+
+  # Compare the current branch with the target branch
+  commits=$(git rev-list --left-right --count HEAD...origin/$target_branch | awk '{print $2}')
+
+  if [ "$commits" -gt 0 ]; then
+    echo "Action required: merge or rebase ⚙️"
+    git fetch origin ${target_branch}:${target_branch}
+    git rebase ${target_branch}
+    return 1 # return false
+  else
+    echo "No action needed ✅"
+    return 0  # return true
+  fi
+}
+
+create_pr() {
+  local p
+  local l
+  local b
+  for arg in "$@"
+  do
+    case $arg in
+      --path=*)
+      p="${arg#*=}"
+      shift
+      ;;
+      --label=*)
+      l="${arg#*=}"
+      shift
+      ;;
+      --base=*)
+      b="${arg#*=}"
+      shift
+      ;;
+    esac
+  done
+  # path
+  p=${p:-"dev"}
+  # label
+  l=${l:-"feat"}
+  # branch / base
+  b=${b:-"dev"}
+
+  fetch_origin $p
+
+  gh pr create --base $b -a='@me' --label $l
+
+  git_path_pr
+}
+
+git_path_pr() {
+  gh pr view | awk '/^state:\t/{s=$2} /^url:\t/{u=$2} END{if(s=="OPEN") print u"/files"}' | pbcopy
+}
+
+branch_exists() {
+  local branch_name=$1
+  git show-ref --verify --quiet "refs/heads/$branch_name"
+}
+
+_create_branch_name_from_issue() {
+  issue="$(gh issue list -a=@me | fzf)"
+  issue_number=$(echo "$issue" | cut -f1)
+  issue_title=$(echo "$issue" | cut -f3)
+  issue_tag=$(echo "$issue" | cut -f4 | cut -d ',' -f 1 | tr -d ' ')
+
+  if [ -z "$issue_title" ]; then
+    echo "Issue title is empty. Canceling."
+      return 1
+  fi
+
+  if [ -z "$issue_number" ]; then
+    echo "Issue number is empty. Canceling."
+      return 1
+  fi
+
+  if [ -z "$issue_tag" ]; then
+    echo "Issue tag is empty. Canceling."
+      return 1
+  fi
+
+  # Replace spaces with dashes and convert to lowercase
+  issue_title=$(echo $issue_title | tr -cd 'A-Za-z ' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+
+  branch_name="${issue_tag}/issue-${issue_number}-${issue_title}"
+
+  if branch_exists "$branch_name"; then
+    git checkout "$branch_name"
+  else
+    git checkout -b "$branch_name"
+  fi
+}
+
+_delete_branch() {
+  read branch_name <<< "$(git fetch -p && _fzf_git_branch | sed 's/remotes\/origin\///')"
+  git checkout dev
+  echo "$branch_name"
+  if branch_exists "$branch_name"; then
+    git branch -D "$branch_name"
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/${branch_name}"; then
+    git push origin --delete "$branch_name"
+  fi
+}
+
+
+
+
+# ===========================================================================================================================
+
+# find shorthand
+function f() {
+	find . -name "$1" 2>&1 | grep -v 'Permission denied'
+}
+
+
+function remove() {
+  find . -name "$1" -type d -prune -print -exec rm -rf '{}' \;
+}
+
+pip_requirements() {
+  if test "$#" -eq 0
+    then
+      echo $'\nProvide at least one Python package name\n'
+  else
+    for package in "$@"
+      do
+        pip install $package
+        pip freeze | grep -i $package >> requirements.txt
+    done
+  fi
+}
+
+function recursive_cd_fzf {
+    local dir
+    dir=$(ls -d */ | fzf)  # List directories and use fzf for interactive selection
+    if [ -n "$dir" ]; then
+        cd "$dir"           # Change directory to the selected one
+        ls -d */ | fzf | xargs -I {} recursive_cd_fzf   # Recursive call with the new directory
+    fi
+}

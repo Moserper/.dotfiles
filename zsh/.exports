@@ -1,0 +1,37 @@
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export GOPATH=$(go env GOPATH)
+export PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
+
+# export ANDROID_HOME=/usr/local/share/android-sdk
+# export ANDROID_SDK_ROOT=/usr/local/share/android-sdk
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export PATH="$(yarn global bin):$PATH"
+
+
+# export JAVA_HOME="/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home"
+export JAVA_HOME="/usr/local/Cellar/openjdk@11/11.0.22/libexec/openjdk.jdk/Contents/Home"
+export PATH="${JAVA_HOME}/bin:${PATH}"
+
+
+export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.config/gcloud/application_default_credentials.json"
+# export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/enterprise-peerapat-a5a2451554eb.json
+# export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/mengkee-stg-a26971af50d6.json
+
+
+# Android 
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+
+export PATH=/Users/Moserper/.local/bin:$PATH
+
+# history
+export HISTCONTROL=ignoreboth:erasedups
+
+export DOCKER_DEFAULT_PLATFORM=linux/amd64

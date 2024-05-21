@@ -1,0 +1,198 @@
+{:profiles {:Default {:default true
+                      :sim     25     ;; simultaneous key press threshold (def: 50)
+                        ;; simlayer is implemented with to_if_alone and simultaneous key press feature
+                        ;; if keydown event for two different keys are pressed within :sim ms, the keypresses are considered simultaneous
+                      :delay   10    ;; to_delayed_action_delay_milliseconds (def: 500)
+                       ;; checkout karabiner's documentation
+                       ;; https://pqrs.org/osx/karabiner/json.html
+                       ;; basically it means time after which the key press is count delayed
+
+                        ;; after :delay ms, the key press is considered to be delayed
+                        ;; (used for double-press macros)
+                      :alone   250    ;; to_if_alone_timeout_milliseconds (def: 1000)
+                        ;; https://pqrs.org/osx/karabiner/json.html#to-if-alone
+                        ;; affects to_if_alone behavior
+                        ;; simlayer is implemented with to_if_alone and simultaneous key press feature
+
+                        ;; if keyup event comes within :alone ms from keydown, the key is not just pressed but held
+                      :held    500    ;; to_if_held_down_threshold_milliseconds (def: 500)
+                        ;; key is fired twice when :held ms is elapsed (otherwise seen as a hold command) (TODO WHAT IS THIS??)
+}} ;; profiles
+
+; the default value is 250
+ :simlayer-threshold 250
+
+ :templates {:km "osascript -e 'tell application \"Keyboard Maestro Engine\" to do script \"%s\"'"
+             :open "open \"%s\""} ;; templates
+
+;; Define different kinds of keyboards
+;; https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/conditions/device/
+ :devices {:apple [{:vendor_id 1452, :product_id 641}
+                   {:is_built_in_keyboard false}
+                   {:ignore false}]
+
+           :ducky [{:vendor_id 1046, :product_id 291}] ;; ducky one 2 sf (mechanical)
+           :aula [{:vendor_id 9610, :product_id 268}] ;; ducky one 2 sf (mechanical)
+
+           :kybs [;; Default for all keyboards
+                    {:vendor_id 1452 :product_id 641}
+                    {:vendor_id 1046 :product_id 291}
+                    {:vendor_id 9610, :product_id 268}
+                 ]
+
+;; layers are basically "hyper" keys
+;; press this in combination with something else and depending on your rule, make things happen
+       ;;     :layers {:tab-mode   {:key :tab}
+;;     :caps-mode {:key :caps_lock :alone {:key :escape}}
+} ;; layers
+
+;; simlayers are basically "hyper" keys
+;; layers works too, but only recommended for non-typing keys like . or tab
+;; to use more regular typing keys, use simlayers
+;;  :simlayers {:super-mode {:key :period}} ;; simlayers
+ :simlayers {} ;; simlayers
+
+ :applications {:terminals  ["^com\\.apple\\.Terminal$",
+                             "^com\\.googlecode\\.iterm2$",
+                             "^co\\.zeit\\.hyperterm$",
+                             "^co\\.zeit\\.hyper$",
+                             "^io\\.alacritty$",
+                             "^org\\.alacritty$",
+                             "^net\\.kovidgoyal\\.kitty$"]}
+
+ :input-sources {;; define input-source, these data can be founhd in Karabiner EventViewer gui
+                 :us {:input_mode_id   ""
+                      :input_source_id "com.apple.keylayout.US"
+                      :language        "en"}}
+;; main contains multiple manipulators
+ :main [;; each manipulator has a description and multiple rules
+
+      ;;{:des "..."                               ;; -> description
+      ;; :rules[
+      ;;          [<from>  <to>  <conditions>]    ;; -> rule 1
+      ;;          [<from>  <to>  <conditions>]    ;; -> rule 2
+      ;; ]}
+
+      ;; rule [:period ["period-mode" 1] nil {:afterup ["period-mode" 0] :alone :period}]
+      ;;       |_____| |_______________| |_| |_________________________________________|
+      ;;        <from>    <to>      <conditions>         <other options>
+      ;;
+      ;; karabiner docs: ;; https://pqrs.org/osx/karabiner/json.html#complex_modifications-manipulator-definition
+      ;; <other options> includs ~to_if_alone~, ~to_if_held_down~,~to_after_key_up~, ~to_delayed_action~ and ~parameters~.
+      ;;
+
+      ;; (custom variables) & modifiers -> Advanced
+      ;; https://github.com/yqrashawn/GokuRakuJoudo/blob/master/examples.org#custom-variable
+
+      ;; ----------------------------------
+      ;; Hardware keyboard mappings
+      ;; ----------------------------------
+
+      ;; !  | means mandatory
+      ;; #  | means optional
+      ;; C  | left_command
+      ;; T  | left_control
+      ;; O  | left_option
+      ;; S  | left_shift
+      ;; F  | fn
+      ;; Q  | right_command
+      ;; W  | right_control
+      ;; E  | right_option
+      ;; R  | right_shift
+      ;; P  | caps_lock
+      ;; !! | mandatory command + control + optional + shift (hyper)
+      ;; ## | optional any
+
+        {:des "Ducky One 2 SF specific mappings"
+         :rules [:ducky
+                 [:##left_option :left_command]
+                 [:##left_command :left_option]
+                 [:##right_option :right_command]
+                 [:##right_command :right_option]]}
+
+        {:des "AULA specific mappings"
+         :rules [:aula
+                 [:grave_accent_and_tilde :escape]
+                 [:backslash :grave_accent_and_tilde]
+                 [:escape :backslash]
+                 [:##left_option :left_command]
+                 [:##left_command :left_option]
+                 [:##right_option :right_command]
+                 [:##right_command :right_option]]}
+
+      ;; ----------------------------------
+      ;; ----------------------------------
+      ;; Key mappings
+      ;; ----------------------------------
+      ;; ----------------------------------
+
+        {:des "ctrl + delete to delete word"
+         :rules [[:!T##delete_or_backspace :!O##delete_or_backspace]]}
+
+        {:des "Caps Lock + Left Command -> Hyper"
+         :rules [[:!C##caps_lock :!CTOleft_shift]]}
+
+        {:des "Caps Lock -> Control | Alone (Escape)"
+         :rules [[:##caps_lock :left_control nil {:alone [:escape]}]]}
+
+
+        ;; {:des "Open Brave"
+        ;;  :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
+
+        {:des "Open Chrome"
+         :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
+
+
+        {:des "Open Cursor"
+         :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
+
+        ;; {:des "Open VS Code"
+        ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
+
+        {:des "Open iTerm"
+         :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+
+        {:des "Open Slack"
+         :rules [[:!!s [:open "/Applications/Slack.app"]]]}
+
+        {:des "Open Postman"
+         :rules [[:!!p [:open "/Applications/Postman.app"]]]}
+
+        {:des "Open Spotify"
+         :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
+
+        {:des "Terminal apps"
+         :rules [:terminals
+                 ;; undo
+                 [:!Tg :!Thyphen]
+                 ;; r
+                 [:!Cu [:escape :e]]
+                 ;; next char
+                 [:!CSf :right_arrow]
+                 ;; prev char
+                 [:!CSb :left_arrow]
+                 ;; move tmux next
+                 [:!CSclose_bracket [:grave_accent_and_tilde :n]]
+                 ;; move tmux prev
+                 [:!CSopen_bracket [:grave_accent_and_tilde :p]]
+                 ;; search
+                 [:!Tslash [:escape :close_bracket]]
+                 ;;
+                ]}
+
+        {:des   "Super Duper Model"
+         :rules [
+                 [[:s :d] ["super-mode" 1] nil {:afterup ["super-mode" 0]} ]
+                 :super-mode
+                ;;  [:##backslash :grave_accent_and_tilde]
+                 [:##h :left_arrow]
+                 [:##l :right_arrow]
+                 [:##j :down_arrow]
+                 [:##k :up_arrow]
+                 [:##a :left_option]
+                 [:##caps_lock :left_control]
+                 [:##f :left_command]
+                 [:##spacebar :left_shift]]}
+                 ;;
+ ;; main list
+        ]}
