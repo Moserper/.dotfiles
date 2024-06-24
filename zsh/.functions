@@ -9,7 +9,6 @@ fetch_origin() {
   if [ -z "$current_branch" ]; then
     echo "You are not currently on a Git branch."
   fi
-
   local target_branch=${1:-"dev"}
   echo "Target branch: $target_branch"
 
@@ -39,14 +38,11 @@ create_pr() {
     case $arg in
       --path=*)
       p="${arg#*=}"
+      b="${arg#*=}"
       shift
       ;;
       --label=*)
       l="${arg#*=}"
-      shift
-      ;;
-      --base=*)
-      b="${arg#*=}"
       shift
       ;;
     esac
@@ -58,11 +54,11 @@ create_pr() {
   # branch / base
   b=${b:-"dev"}
 
-  fetch_origin $p
-
-  gh pr create --base $b -a='@me' --label $l
-
-  git_path_pr
+  if [ "$p" = "dev" ]; then
+    fetch_origin $p && gh pr create --base $b -a='@me' --label $l && git_path_pr
+  else
+    gh pr create --base $b -a='@me' --label $l && git_path_pr
+  fi
 }
 
 git_path_pr() {

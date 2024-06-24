@@ -231,3 +231,6 @@ if [[ -n $DISPLAY ]]; then
     zle -N x-kill-whole-line                                                                                  
     bindkey '\C-u' x-kill-whole-line                                                                          
 fi 
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"

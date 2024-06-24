@@ -6,6 +6,9 @@ alias browse=""
 alias ls="ls -al --color"
 alias vim="nvim"
 alias lg="lazygit"
+alias vhistory="vi ~/.zsh_history"
+alias merge_pr="gh pr merge --admin "
+alias pod='arch -x86_64 pod'
 
 # docker
 alias drun='docker run --rm -it -v "${PWD}":/app -w /app'

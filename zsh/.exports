@@ -18,7 +18,7 @@ export JAVA_HOME="/usr/local/Cellar/openjdk@11/11.0.22/libexec/openjdk.jdk/Conte
 export PATH="${JAVA_HOME}/bin:${PATH}"
 
 
-export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.config/gcloud/application_default_credentials.json"
+# export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.config/gcloud/application_default_credentials.json"
 # export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/enterprise-peerapat-a5a2451554eb.json
 # export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/mengkee-stg-a26971af50d6.json
 
