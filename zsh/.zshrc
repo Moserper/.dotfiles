@@ -1,4 +1,5 @@
 zmodload zsh/zprof
+
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -81,12 +82,16 @@ ZSH_THEME="robbyrussell"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 #
+
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 plugins=(
   git
   fzf
   vscode
-  zsh-syntax-highlighting
-  zsh-autosuggestions
+  # zsh-syntax-highlighting
+  # zsh-autosuggestions
   # zsh-history-substring-search
   # globalias
 )
@@ -132,12 +137,6 @@ POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
 
 eval
 EAS_AC_ZSH_SETUP_PATH=/Users/Moserper/Library/Caches/eas-cli/autocomplete/zsh_setup && test -f $EAS_AC_ZSH_SETUP_PATH && source $EAS_AC_ZSH_SETUP_PATH; # eas autocomplete setup
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/Moserper/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/Moserper/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/Moserper/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/Moserper/google-cloud-sdk/completion.zsh.inc'; fi
-
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -234,3 +233,10 @@ fi
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/moserper/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/moserper/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/moserper/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/moserper/google-cloud-sdk/completion.zsh.inc'; fi

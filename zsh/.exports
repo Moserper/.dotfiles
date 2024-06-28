@@ -7,8 +7,8 @@ export PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
 # export ANDROID_SDK_ROOT=/usr/local/share/android-sdk
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  [ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 export PATH="$(yarn global bin):$PATH"
 
@@ -23,7 +23,7 @@ export PATH="${JAVA_HOME}/bin:${PATH}"
 # export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/mengkee-stg-a26971af50d6.json
 
 
-# Android 
+# Android
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
@@ -33,5 +33,4 @@ export PATH=/Users/Moserper/.local/bin:$PATH
 
 # history
 export HISTCONTROL=ignoreboth:erasedups
-
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
