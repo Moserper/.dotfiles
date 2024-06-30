@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Setup fzf
 # ---------
 if [[ ! "$PATH" == */usr/local/opt/fzf/bin* ]]; then
@@ -11,4 +13,3 @@ fi
 # Key bindings
 # ------------
 source "/usr/local/opt/fzf/shell/key-bindings.zsh"
-

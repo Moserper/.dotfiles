@@ -1,0 +1,16 @@
+.Trash/
+.cache/
+.docker/
+.local/
+.npm/
+.nvm/
+.oh-my-zsh/
+.vim/
+.vscode/
+.zsh_sessions/
+Library/
+Movies/
+Music/
+Pictures/
+Public/
+node_modules/

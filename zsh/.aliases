@@ -1,11 +1,16 @@
+#!/bin/bash
+
 alias c='clear'
 alias godev='cd ~/Desktop/dev'
 alias air='$(go env GOPATH)/bin/air'
+
 alias branch='git branch --show-current'
 alias browse=""
 alias ls="ls -al --color"
+
 alias vim="nvim"
 alias lg="lazygit"
+
 alias vhistory="vi ~/.zsh_history"
 alias merge_pr="gh pr merge --admin "
 alias pod='arch -x86_64 pod'
@@ -14,10 +19,9 @@ alias pod='arch -x86_64 pod'
 alias drun='docker run --rm -it -v "${PWD}":/app -w /app'
 alias docker build='docker buildx build'
 
-#git
+# git
 #alias gsb='_fzf_git_branch | xargs -I % git checkout %'
 alias gsb='git fetch origin && _fzf_git_branch | sed "s/remotes\/origin\///" | xargs -I % git checkout %'
 
 alias gcbi=_create_branch_name_from_issue
 alias gdb=_delete_branch
-
