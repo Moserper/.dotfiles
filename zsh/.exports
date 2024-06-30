@@ -34,3 +34,4 @@ export PATH=/Users/Moserper/.local/bin:$PATH
 # history
 export HISTCONTROL=ignoreboth:erasedups
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
+export PATH="/usr/local/opt/openjdk/bin:$PATH"

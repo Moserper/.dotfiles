@@ -12,6 +12,7 @@ alias pod='arch -x86_64 pod'
 
 # docker
 alias drun='docker run --rm -it -v "${PWD}":/app -w /app'
+alias docker build='docker buildx build'
 
 #git
 #alias gsb='_fzf_git_branch | xargs -I % git checkout %'
