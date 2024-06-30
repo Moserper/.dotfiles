@@ -25,3 +25,7 @@ alias gsb='git fetch origin && _fzf_git_branch | sed "s/remotes\/origin\///" | x
 
 alias gcbi=_create_branch_name_from_issue
 alias gdb=_delete_branch
+
+# zsh
+alias zsh_mac='env /usr/bin/arch -arm64 /bin/zsh -c "uname -m"'
+alias zsh_intel='env /usr/bin/arch -x86_64 /bin/zsh -c "uname -m"'
