@@ -16,7 +16,7 @@ fi
 #
 # Path to your oh-my-zsh installation.
 # setopt HIST_EXPIRE_DUPS_FIRST
-export ZSH="/Users/Moserper/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 export CLOUDSDK_PYTHON=python3
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -86,6 +86,7 @@ ZSH_THEME="robbyrussell"
 source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zs
 plugins=(
   git
   fzf
@@ -136,7 +137,7 @@ POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
 # [[ ! -f ~/.exports ]] || source ~/.exports
 
 eval
-EAS_AC_ZSH_SETUP_PATH=/Users/Moserper/Library/Caches/eas-cli/autocomplete/zsh_setup && test -f $EAS_AC_ZSH_SETUP_PATH && source $EAS_AC_ZSH_SETUP_PATH; # eas autocomplete setup
+EAS_AC_ZSH_SETUP_PATH=$HOME/Library/Caches/eas-cli/autocomplete/zsh_setup && test -f $EAS_AC_ZSH_SETUP_PATH && source $EAS_AC_ZSH_SETUP_PATH; # eas autocomplete setup
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -236,7 +237,7 @@ export PATH="$PATH:$HOME/.rvm/bin"
 source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/moserper/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/moserper/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '$HOME/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/moserper/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/moserper/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '$HOME/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/google-cloud-sdk/completion.zsh.inc'; fi

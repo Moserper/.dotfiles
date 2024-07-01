@@ -3,7 +3,8 @@
 ## setting
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export PATH=/Users/Moserper/.local/bin:$PATH
+export PATH=$HOME/.local/bin:$PATH
+export PATH=/opt/homebrew/bin:$PATH
 
 # history
 export HISTCONTROL=ignoreboth:erasedups
@@ -37,9 +38,9 @@ export NVM_DIR="$HOME/.nvm"
   [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # GCP
-# export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.config/gcloud/application_default_credentials.json"
-# export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/enterprise-peerapat-a5a2451554eb.json
-# export GOOGLE_APPLICATION_CREDENTIALS=/Users/Moserper/Downloads/mengkee-stg-a26971af50d6.json
+# export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+# export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Downloads/enterprise-peerapat-a5a2451554eb.json
+# export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Downloads/mengkee-stg-a26971af50d6.json
 
 # Android
 # export ANDROID_HOME=/usr/local/share/android-sdk
