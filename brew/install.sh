@@ -1,7 +1,7 @@
 #!/bin/bash
 # Install the packages listed in the leaves file
 while read -r package; do
-    if ! brew list --formula | grep -q "^$package\$"; then
+    if ! brew leaves | grep -q "^$package\$"; then
         brew install "$package"
     else
         echo "$package is already installed."

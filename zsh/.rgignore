@@ -7,6 +7,8 @@
 .oh-my-zsh/
 .vim/
 .vscode/
+.config/
+.cursor/
 .zsh_sessions/
 Library/
 Movies/

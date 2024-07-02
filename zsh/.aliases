@@ -6,7 +6,7 @@ alias air='$(go env GOPATH)/bin/air'
 
 alias branch='git branch --show-current'
 alias browse=""
-alias ls="ls -al --color"
+alias ls='ls -al --color'
 
 alias vim="nvim"
 alias lg="lazygit"
@@ -29,3 +29,4 @@ alias gdb=_delete_branch
 # zsh
 alias zsh_mac='env /usr/bin/arch -arm64 /bin/zsh -c "uname -m"'
 alias zsh_intel='env /usr/bin/arch -x86_64 /bin/zsh -c "uname -m"'
+

@@ -136,11 +136,11 @@
          :rules [[:##caps_lock :left_control nil {:alone [:escape]}]]}
 
 
-        ;; {:des "Open Brave"
-        ;;  :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
+        {:des "Open Brave"
+         :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
 
-        {:des "Open Chrome"
-         :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
+        ;; {:des "Open Chrome"
+        ;;  :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
 
 
         {:des "Open Cursor"

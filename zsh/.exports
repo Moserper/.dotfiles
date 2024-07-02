@@ -3,8 +3,8 @@
 ## setting
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
+export PATH="$PATH:"/usr/local/bin/ 
 export PATH=$HOME/.local/bin:$PATH
-export PATH=/opt/homebrew/bin:$PATH
 
 # history
 export HISTCONTROL=ignoreboth:erasedups
@@ -36,6 +36,7 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 export NVM_DIR="$HOME/.nvm"
   [ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
   [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
 
 # GCP
 # export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"

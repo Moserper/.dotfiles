@@ -1,5 +1,6 @@
-# github
+#!/bin/bash
 
+# github
 fetch_origin() {
   # Get the current branch name
   current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)

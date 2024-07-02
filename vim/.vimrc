@@ -22,7 +22,6 @@ set nohlsearch
 set incsearch
 set ruler
 set mouse=a
-set ttymouse=xterm
 set clipboard=unnamed
 set backspace=indent,eol,start
 set t_Co=256
@@ -31,8 +30,8 @@ set guifont="DroidSansMono Nerd Font"
 
 set rtp+=/usr/local/opt/fzf
 
-nnoremap <Leader>vr :source ~/.vimrc<CR>
 let mapleader = " "
+nnoremap <leader>n :source ~/.vimrc<CR>
 nnoremap <leader>h :wincmd h<CR>
 nnoremap <leader>k :wincmd k<CR>
 nnoremap <leader>j :wincmd j<CR>
