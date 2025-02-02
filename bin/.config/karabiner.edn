@@ -136,11 +136,11 @@
          :rules [[:##caps_lock :left_control nil {:alone [:escape]}]]}
 
 
-        {:des "Open Brave"
-         :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
+        ;; {:des "Open Brave"
+        ;;  :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
 
-        ;; {:des "Open Chrome"
-        ;;  :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
+        {:des "Open Chrome"
+         :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
 
 
         {:des "Open Cursor"
@@ -149,8 +149,11 @@
         ;; {:des "Open VS Code"
         ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
 
-        {:des "Open iTerm"
-         :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+        {:des "Open terminal"
+         :rules [[:!!l [:open "/System/Applications/Utilities/Terminal.app"]]]}
+
+        ; {:des "Open iTerm"
+        ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
 
         {:des "Open Slack"
          :rules [[:!!s [:open "/Applications/Slack.app"]]]}

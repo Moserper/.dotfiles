@@ -1,3 +1,5 @@
+# Amazon Q pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
 # zmodload zsh/zprof # top of your .zshrc file
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -11,8 +13,8 @@ fi
 source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source $HOMEBREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme
-source $HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc
-source $HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc
+# source $HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc
+# source $HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc
 
 # debug error message
 # zsh --source-trace -lic ''
@@ -95,8 +97,8 @@ plugins=(
   git
   fzf
   vscode
-  # zsh-syntax-highlighting
-  # zsh-autosuggestions
+  zsh-syntax-highlighting
+  zsh-autosuggestions
   # zsh-history-substring-search
   # globalias
 )
@@ -158,3 +160,11 @@ bindkey '^[[B' history-substring-search-down
 source ~/.zprofile
 
 # zprof # bottom of .zshrc
+#
+#
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# Amazon Q post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"

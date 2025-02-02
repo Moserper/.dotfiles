@@ -10,6 +10,7 @@
 .config/
 .cursor/
 .zsh_sessions/
+.mongodb/
 Library/
 Movies/
 Music/

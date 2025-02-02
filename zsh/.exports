@@ -3,7 +3,7 @@
 ## setting
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export PATH="$PATH:"/usr/local/bin/ 
+export PATH="$PATH:"/usr/local/bin/
 export PATH=$HOME/.local/bin:$PATH
 
 # history
@@ -12,12 +12,14 @@ export HISTCONTROL=ignoreboth:erasedups
 ## language
 # python
 export PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
+# export PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
 # ruby
 export LDFLAGS="-L/usr/local/opt/ruby/lib"
 export CPPFLAGS="-I/usr/local/opt/ruby/include"
 
 # go
-export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$(go env GOPATH)/bin
+# export GOPATH=$(go env GOPATH)
 
 # yarn
 export PATH="$(yarn global bin):$PATH"
@@ -39,9 +41,11 @@ export NVM_DIR="$HOME/.nvm"
 
 
 # GCP
-# export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
 # export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Downloads/enterprise-peerapat-a5a2451554eb.json
 # export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Downloads/mengkee-stg-a26971af50d6.json
+# export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Desktop/key/brightman-staging-tcma/brightman-tcma-staging-f71ee468efae.json
+# export GOOGLE_APPLICATION_CREDENTIALS=$HOME/Desktop/key/brightman-product/brightman-bdaf2cfc91b8.json
 
 # Android
 # export ANDROID_HOME=/usr/local/share/android-sdk

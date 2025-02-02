@@ -10,6 +10,7 @@ fetch_origin() {
   if [ -z "$current_branch" ]; then
     echo "You are not currently on a Git branch."
   fi
+
   local target_branch=${1:-"dev"}
   echo "Target branch: $target_branch"
 
@@ -31,35 +32,51 @@ fetch_origin() {
 }
 
 create_pr() {
-  local p
-  local l
-  local b
+  local base
+  local label
+  local current_branch
+
   for arg in "$@"
   do
     case $arg in
-      --path=*)
-      p="${arg#*=}"
-      b="${arg#*=}"
+      --base=*)
+      base="${arg#*=}"
       shift
       ;;
       --label=*)
-      l="${arg#*=}"
+      label="${arg#*=}"
+      shift
+      ;;
+      --current=*)
+      current_branch="${arg#*=}"
       shift
       ;;
     esac
   done
-  # path
-  p=${p:-"dev"}
-  # label
-  l=${l:-"feat"}
-  # branch / base
-  b=${b:-"dev"}
 
-  if [ "$p" = "dev" ]; then
-    fetch_origin $p && gh pr create --base $b -a='@me' --label $l && git_path_pr
-  else
-    gh pr create --base $b -a='@me' --label $l && git_path_pr
+  if [ -z "$current_branch" ]; then
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
   fi
+
+  # base
+  base=${base:-"dev"}
+  # label
+  label=${label:-""}
+  # current base
+  current_branch=${current_branch}
+
+  pr_command="gh pr create --base \"$base\" -a @me"
+
+  if [ -n "$label" ]; then
+    pr_command+=" --label \"$label\""
+  fi
+
+  fetch_origin $base && eval $pr_command && git_path_pr
+  # if [ "$p" = "dev" ]; then
+  #   fetch_origin $base && gh pr create --base $current_branch -a='@me' --label $label && git_path_pr
+  # else
+  #   gh pr create --base $current_branch -a='@me' --label $label && git_path_pr
+  # fi
 }
 
 git_path_pr() {
@@ -117,9 +134,6 @@ _delete_branch() {
   fi
 }
 
-
-
-
 # ===========================================================================================================================
 
 # find shorthand
@@ -152,4 +166,21 @@ function recursive_cd_fzf {
         cd "$dir"           # Change directory to the selected one
         ls -d */ | fzf | xargs -I {} recursive_cd_fzf   # Recursive call with the new directory
     fi
+}
+
+function vs_edit_issue() {
+   gh issue view $1 --json body --jq .body > /tmp/gh-$1.md
+   cursor --wait /tmp/gh-$1.md
+   gh issue edit $1 --body-file /tmp/gh-$1.md
+}
+
+gcp_project() {
+  local projectId
+  projectId=$(gcloud projects list --format='value(projectId)' | fzf)
+  if [[ -n "$projectId" ]]; then
+    gcloud config set project "$projectId"
+    echo "Selected and set project: $projectId"
+  else
+    echo "No project selected."
+  fi
 }

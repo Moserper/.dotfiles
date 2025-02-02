@@ -31,7 +31,7 @@
 ## History file configuration
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
 
-HISTSIZE=50000
+HISTSIZE=10000
 SAVEHIST=10000
 
 # setopt HIST_EXPIRE_DUPS_FIRST
@@ -45,9 +45,9 @@ SAVEHIST=10000
 # setopt noextendedhistory
 # setopt nosharehistory
 
-setopt NO_EXTENDED_HISTOry
+setopt NO_EXTENDED_HISTORY
 setopt NO_SHARE_HISTORY
-setopt INC_APPEND_HISTORy
+setopt INC_APPEND_HISTORY
 # Sounds good, but this takes 12sec
 #setopt histexpiredupsfirst
 setopt HIST_FIND_NO_DUPS
@@ -57,9 +57,9 @@ setopt HIST_SAVE_NO_DUPS
 setopt HIST_REDUCE_BLANKS
 
 # Add a function to clean history
-function clean_history {
-    awk '!seen[$0]++' "$HISTFILE" > "$HISTFILE.tmp" && mv "$HISTFILE.tmp" "$HISTFILE"
-}
+# function clean_history {
+#     awk '!seen[$0]++' "$HISTFILE" > "$HISTFILE.tmp" && mv "$HISTFILE.tmp" "$HISTFILE"
+# }
 
 # Hook the function to run on shell exit
 autoload -Uz add-zsh-hook
