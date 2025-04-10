@@ -70,6 +70,7 @@ create_pr() {
   if [ -n "$label" ]; then
     pr_command+=" --label \"$label\""
   fi
+  echo $pr_command
 
   fetch_origin $base && eval $pr_command && git_path_pr
   # if [ "$p" = "dev" ]; then
@@ -141,9 +142,10 @@ function f() {
 	find . -name "$1" 2>&1 | grep -v 'Permission denied'
 }
 
-
 function remove() {
-  find . -name "$1" -type d -prune -print -exec rm -rf '{}' \;
+  for dir in "$@"; do
+    find . -name "$dir" -type d -prune -print -exec rm -rf '{}' \;
+  done
 }
 
 pip_requirements() {
@@ -183,4 +185,8 @@ gcp_project() {
   else
     echo "No project selected."
   fi
+}
+
+myip() {
+  ifconfig en0 | grep "inet " | awk '{print $2}'
 }

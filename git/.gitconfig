@@ -1,13 +1,13 @@
 [core]
-	excludesfile = $HOME/.gitignore_global
+	excludesfile = /Users/foxbith20/.gitignore_global
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
 [mergetool "sourcetree"]
 	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
 [user]
-	name = Moserper
-	email = pathomporn.sub@gmail.com
+	name = moserper
+	email = 
 [commit]
 	template = $HOME/.stCommitMsg
 [pager]
@@ -15,7 +15,7 @@
 [init]
 	defaultBranch = main
 [web]
-	browser = ch
+	browser = ch;;;
 [browser "ch"]
 	cmd = open -a \"/Applications/Google Chrome.app\"
 [alias]
@@ -29,7 +29,7 @@
   stash-select = "!f() { message=\"--\"; if [ -n \"$1\" ]; then message=\"-m $1\"; fi; git stash push \"$message\" $(git status --short | grep '^[MARCD]' | awk '{printf \"%s \", $2}' | sed 's/ $//'); }; f"
 	pr = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')/compare/$(git config --get branch.$(git branch --show-current).merge | cut -d / -f 3-)?expand=1\"; }; f"
 	pushup = !git push --set-upstream origin `git symbolic-ref --short HEAD`
-
+	cn = "!git checkout . && git clean -f -d"
 [pull]
 	ff = true
 [fetch]
@@ -38,6 +38,6 @@
 	autoSetupRemote = true
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+	path = 
 [credential]
 	helper = store

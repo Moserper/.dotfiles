@@ -34,6 +34,12 @@
            :ducky [{:vendor_id 1046, :product_id 291}] ;; ducky one 2 sf (mechanical)
            :aula [{:vendor_id 9610, :product_id 268}] ;; ducky one 2 sf (mechanical)
 
+           :mouse_logi [
+            {:product_id 45111 :vendor_id 1133}
+            {:mouse_flip_vertical_wheel true}
+            {:ignore false}
+           ]
+
            :kybs [;; Default for all keyboards
                     {:vendor_id 1452 :product_id 641}
                     {:vendor_id 1046 :product_id 291}
@@ -52,13 +58,20 @@
 ;;  :simlayers {:super-mode {:key :period}} ;; simlayers
  :simlayers {} ;; simlayers
 
- :applications {:terminals  ["^com\\.apple\\.Terminal$",
+ :applications {
+    :terminals  ["^com\\.apple\\.Terminal$",
                              "^com\\.googlecode\\.iterm2$",
                              "^co\\.zeit\\.hyperterm$",
                              "^co\\.zeit\\.hyper$",
                              "^io\\.alacritty$",
                              "^org\\.alacritty$",
-                             "^net\\.kovidgoyal\\.kitty$"]}
+                             "^net\\.kovidgoyal\\.kitty$"
+                            "^com\\.ghostty\\.terminal$",
+                            "^com\\.mitchellh\\.ghostty$",
+                            ]
+    :browsers   ["^com\\.google\\.Chrome$",
+                            ]
+  }
 
  :input-sources {;; define input-source, these data can be founhd in Karabiner EventViewer gui
                  :us {:input_mode_id   ""
@@ -82,6 +95,7 @@
       ;;
 
       ;; (custom variables) & modifiers -> Advanced
+      ;; https://gist.github.com/joshuawagner/b6d53fba5e361906f38832feee027cb3
       ;; https://github.com/yqrashawn/GokuRakuJoudo/blob/master/examples.org#custom-variable
 
       ;; ----------------------------------
@@ -114,12 +128,21 @@
          :rules [:aula
                  [:grave_accent_and_tilde :escape]
                  [:backslash :grave_accent_and_tilde]
-                 [:escape :backslash]
+                 [:page_up :backslash]
                  [:##left_option :left_command]
                  [:##left_command :left_option]
                  [:##right_option :right_command]
                  [:##right_command :right_option]]}
 
+        {:des "Mouse logi"
+         :rules [:mouse-logi
+                 [:grave_accent_and_tilde :escape]
+                 [:backslash :grave_accent_and_tilde]
+                 [:escape :backslash]
+                 [:##left_option :left_command]
+                 [:##left_command :left_option]
+                 [:##right_option :right_command]
+                 [:##right_command :right_option]]}
       ;; ----------------------------------
       ;; ----------------------------------
       ;; Key mappings
@@ -149,20 +172,11 @@
         ;; {:des "Open VS Code"
         ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
 
-        {:des "Open terminal"
-         :rules [[:!!l [:open "/System/Applications/Utilities/Terminal.app"]]]}
+        {:des "Open Ghostty"
+         :rules [[:!!l [:open "/Applications/Ghostty.app"]]]}
 
-        ; {:des "Open iTerm"
-        ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
-
-        {:des "Open Slack"
-         :rules [[:!!s [:open "/Applications/Slack.app"]]]}
-
-        {:des "Open Postman"
-         :rules [[:!!p [:open "/Applications/Postman.app"]]]}
-
-        {:des "Open Spotify"
-         :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
+        ;; {:des "Open terminal"
+        ;;  :rules [[:!!l [:open "/System/Applications/Utilities/Terminal.app"]]]}
 
         {:des "Terminal apps"
          :rules [:terminals
@@ -183,6 +197,31 @@
                  ;;
                 ]}
 
+        {:des "Browser apps"
+          :rules [:browsers
+                  ;; workaround
+                ;;  [:!CSb :left_arrow]
+                  [:!CSm [:!Cl :!Cc :!Cw :!Cn :!Cv :return_or_enter]]
+                  ]}
+
+        ; {:des "Open iTerm"
+        ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+
+        {:des "Open Obsidian"
+         :rules [[:!!n [:open "/Applications/Obsidian.app"]]]}
+
+        {:des "Open Slack"
+         :rules [[:!!s [:open "/Applications/Slack.app"]]]}
+
+        {:des "Open Postman"
+         :rules [[:!!p [:open "/Applications/Postman.app"]]]}
+
+        {:des "Open Spotify"
+         :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
+
+        {:des "click"
+         :rules [[:page_down :button1]]}
+
         {:des   "Super Duper Model"
          :rules [
                  [[:s :d] ["super-mode" 1] nil {:afterup ["super-mode" 0]} ]
@@ -193,9 +232,15 @@
                  [:##j :down_arrow]
                  [:##k :up_arrow]
                  [:##a :left_option]
+                 [:##quote :left_control]
                  [:##caps_lock :left_control]
                  [:##f :left_command]
+                 [:##y :!Cc]
+                 [:##p :!Cv]
+                 [:##u :!Cz]
                  [:##spacebar :left_shift]]}
                  ;;
  ;; main list
         ]}
+
+

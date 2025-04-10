@@ -1,6 +1,7 @@
 syntax on
 
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+" PlugInstall
 
 call plug#begin('~/.vim/plugged')
 Plug 'scrooloose/nerdcommenter'
@@ -28,7 +29,7 @@ set t_Co=256
 set background=dark
 set guifont="DroidSansMono Nerd Font"
 
-set rtp+=/usr/local/opt/fzf
+set rtp+=$HOMEBREW_PREFIX/opt/fzf
 
 let mapleader = " "
 nnoremap <leader>n :source ~/.vimrc<CR>

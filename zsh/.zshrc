@@ -10,8 +10,9 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source $HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source "$HOME/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+# source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# source $HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source $HOMEBREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme
 # source $HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc
 # source $HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc
@@ -97,7 +98,7 @@ plugins=(
   git
   fzf
   vscode
-  zsh-syntax-highlighting
+  # zsh-syntax-highlighting
   zsh-autosuggestions
   # zsh-history-substring-search
   # globalias
@@ -141,6 +142,10 @@ complete -o nospace -C $HOMEBREW_PREFIX/bin/terraform terraform
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
+    export TERM=xterm-256color
+fi
 
 bindkey '^[]' fzf-cd-widget
 bindkey "^b" backward-word

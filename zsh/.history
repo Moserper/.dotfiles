@@ -29,38 +29,48 @@
 #
 #
 ## History file configuration
+# History file location and size
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000               # Maximum events in internal history
+SAVEHIST=50000               # Maximum events in history file
 
-HISTSIZE=10000
-SAVEHIST=10000
+# Core history behavior
+setopt INC_APPEND_HISTORY    # Add commands to history as they're executed
+setopt NO_SHARE_HISTORY      # Don't share history between multiple zsh sessions
+setopt NO_EXTENDED_HISTORY   # Don't save timestamps with history
 
-# setopt HIST_EXPIRE_DUPS_FIRST
-# setopt HIST_IGNORE_DUPS
-# setopt HIST_IGNORE_ALL_DUPS
-# setopt HIST_FIND_NO_DUPS
-# setopt HIST_IGNORE_SPACE
-# setopt HIST_SAVE_NO_DUPS
-# setopt HIST_REDUCE_BLANKS
-# setopt HIST_VERIFY
-# setopt noextendedhistory
-# setopt nosharehistory
+# History deduplication and cleaning
+setopt HIST_IGNORE_DUPS      # Don't record a command that was just recorded
+setopt HIST_FIND_NO_DUPS     # Don't display duplicates when searching
+setopt HIST_IGNORE_SPACE     # Don't record commands starting with space
+setopt HIST_SAVE_NO_DUPS     # Don't write duplicate entries to history file
+setopt HIST_REDUCE_BLANKS    # Remove superfluous blanks from commands
+setopt HIST_EXPIRE_DUPS_FIRST # Remove duplicates first when trimming history
+setopt HIST_VERIFY           # Don't execute immediately upon history expansion
 
-setopt NO_EXTENDED_HISTORY
-setopt NO_SHARE_HISTORY
-setopt INC_APPEND_HISTORY
-# Sounds good, but this takes 12sec
-#setopt histexpiredupsfirst
-setopt HIST_FIND_NO_DUPS
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_SAVE_NO_DUPS
-setopt HIST_REDUCE_BLANKS
+# Enhanced history cleaning function
+# More efficient than the previous implementation
+function clean_history() {
+  local tmp_file=$(mktemp)
+  
+  # Using LC_ALL=C for better performance
+  LC_ALL=C sort -u "$HISTFILE" > "$tmp_file"
+  
+  # Atomic replacement with backup
+  if [[ -s "$tmp_file" ]]; then
+    cp "$HISTFILE" "$HISTFILE.backup-$(date +%F)" 
+    mv "$tmp_file" "$HISTFILE"
+    echo "History cleaned and backed up"
+  else
+    echo "Error cleaning history - temp file empty"
+    rm "$tmp_file"
+  fi
+}
 
-# Add a function to clean history
-# function clean_history {
-#     awk '!seen[$0]++' "$HISTFILE" > "$HISTFILE.tmp" && mv "$HISTFILE.tmp" "$HISTFILE"
-# }
-
-# Hook the function to run on shell exit
+# Run clean_history on shell exit
 autoload -Uz add-zsh-hook
 add-zsh-hook zshexit clean_history
+
+# Optional aliases for history management
+alias hc='clean_history'           # Quick history cleanup
+alias hs='history 1 | grep -i'     # Search history

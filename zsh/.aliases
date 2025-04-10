@@ -17,7 +17,7 @@ alias pod='arch -x86_64 pod'
 
 # docker
 alias drun='docker run --rm -it -v "${PWD}":/app -w /app'
-alias docker build='docker buildx build'
+# alias docker build='docker buildx build'
 
 # git
 #alias gsb='_fzf_git_branch | xargs -I % git checkout %'
@@ -30,3 +30,4 @@ alias gdb=_delete_branch
 # alias zsh_mac='env /usr/bin/arch -arm64 /bin/zsh -c "uname -m"'
 # alias zsh_intel='env /usr/bin/arch -x86_64 /bin/zsh -c "uname -m"'
 
+alias certbot='certbot --config-dir ~/.certbot/config --work-dir ~/.certbot/work --logs-dir ~/.certbot/logs'

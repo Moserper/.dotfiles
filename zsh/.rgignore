@@ -17,3 +17,5 @@ Music/
 Pictures/
 Public/
 node_modules/
+go/pkg/
+.cargo/

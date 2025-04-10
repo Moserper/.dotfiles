@@ -2,17 +2,19 @@
 
 # Setup fzf
 # ---------
-if [[ ! "$PATH" == */usr/local/opt/fzf/bin* ]]; then
-  PATH="${PATH:+${PATH}:}/usr/local/opt/fzf/bin"
+# Add fzf to PATH
+# ----------------
+if [[ ! "$PATH" == *${HOMEBREW_PREFIX}/opt/fzf/bin* ]]; then
+  export PATH="${PATH:+${PATH}:}${HOMEBREW_PREFIX}/opt/fzf/bin"
 fi
 
 # Auto-completion
 # ---------------
-[[ $- == *i* ]] && source "/usr/local/opt/fzf/shell/completion.zsh" 2> /dev/null
+[[ $- == *i* ]] && source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" 2> /dev/null
 
 # Key bindings
 # ------------
-source "/usr/local/opt/fzf/shell/key-bindings.zsh"
+source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
 
 _fzf_comprun() {
   local command=$1
@@ -44,7 +46,7 @@ export EXCLUDE_FILE=$(cat ~/.rgignore | sed -e 's/^/--exclude /' | xargs)
 
 # export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE"
 #
-export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE --max-depth 4"
+export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE --max-depth 5"
 
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
@@ -57,7 +59,7 @@ export FZF_CTRL_R_OPTS="
   --layout=reverse
   "
 
-export FZF_ALT_C_COMMAND="fd --type d -H --no-ignore-vcs $EXCLUDE_FILE --max-depth 4"
+export FZF_ALT_C_COMMAND="fd --type d -H --no-ignore-vcs $EXCLUDE_FILE --max-depth 5"
 export FZF_ALT_C_OPTS="--layout=reverse --inline-info"
 
 
