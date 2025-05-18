@@ -190,3 +190,39 @@ gcp_project() {
 myip() {
   ifconfig en0 | grep "inet " | awk '{print $2}'
 }
+
+
+copy_env() {
+  local source_folder="$1"
+
+  if [[ -z "$source_folder" ]]; then
+    echo "Usage: copy_env <source_folder>"
+    return 1
+  fi
+
+  declare -A seen_folders
+
+ find "$source_folder" -type f \( -name ".env" -o -name "*.tfvars" \) | while read -r item; do
+
+    # Extract root folder (first directory after 'source_folder/')
+    rel_path="${item#${source_folder}/}"
+    root_folder="${rel_path%%/*}"
+
+    if [[ -z "${seen_folders[$root_folder]}" ]]; then
+      echo "$root_folder"
+      seen_folders["$root_folder"]=1
+    fi
+
+    dest="env/$rel_path"
+    mkdir -p "$(dirname "$dest")"
+    echo "Copying: $item to $dest"
+    cp "$item" "$dest"
+  done
+
+  # Print folder count
+  echo "Folder count: ${#seen_folders[@]}"
+}
+
+fzf_cd_wrapper() {
+  zle fzf-cd-widget
+}

@@ -40,4 +40,4 @@
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
 [credential]
-	helper = store
+	helper = osxkeychain

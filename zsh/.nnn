@@ -1,11 +1,14 @@
 #!/bin/bash
 
+export NNN_PLUG='j:autojump;f:fzcd;p:peview-tui'
+set --export NNN_INFO "/tmp/nnn.fifo"
 n () {
   # Block nesting of nnn in subshells
   [ "${NNNLVL:-0}" -eq 0 ] || {
     echo "nnn is already running"
       return
   }
+  export EDITOR=cursor
 
   # The behaviour is set to cd on quit (nnn checks if NNN_TMPFILE is set)
   # If NNN_TMPFILE is set to a custom path, it must be exported for nnn to
@@ -23,7 +26,7 @@ n () {
 
   # The command builtin allows one to alias nnn to n, if desired, without
   # making an infinitely recursive alias
-  command nnn -xR "$@"
+  command nnn -exR "$@"
 
   [ ! -f "$NNN_TMPFILE" ] || {
     . "$NNN_TMPFILE"

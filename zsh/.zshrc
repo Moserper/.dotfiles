@@ -98,6 +98,7 @@ plugins=(
   git
   fzf
   vscode
+  kubectl
   # zsh-syntax-highlighting
   zsh-autosuggestions
   # zsh-history-substring-search
@@ -173,3 +174,7 @@ eval "$(pyenv init -)"
 
 # Amazon Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
+
+terraform-docs completion zsh > /usr/local/share/zsh/site-functions/_terraform-docs
+autoload -U compinit && compinit
+

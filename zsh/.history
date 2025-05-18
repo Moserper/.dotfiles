@@ -54,8 +54,12 @@ function clean_history() {
   local tmp_file=$(mktemp)
   
   # Using LC_ALL=C for better performance
-  LC_ALL=C sort -u "$HISTFILE" > "$tmp_file"
-  
+  # LC_ALL=C sort -u "$HISTFILE" > "$tmp_file"
+
+  LC_ALL=C sed '1!G;h;$!d' "$HISTFILE" \
+    | awk '!seen[$0]++' \
+    | sed '1!G;h;$!d' > "$tmp_file"
+
   # Atomic replacement with backup
   if [[ -s "$tmp_file" ]]; then
     cp "$HISTFILE" "$HISTFILE.backup-$(date +%F)" 
@@ -69,8 +73,8 @@ function clean_history() {
 
 # Run clean_history on shell exit
 autoload -Uz add-zsh-hook
-add-zsh-hook zshexit clean_history
-
+# add-zsh-hook zshexit clean_history
+#
 # Optional aliases for history management
 alias hc='clean_history'           # Quick history cleanup
 alias hs='history 1 | grep -i'     # Search history
