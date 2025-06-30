@@ -1,21 +1,6 @@
-# Amazon Q pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
-# zmodload zsh/zprof # top of your .zshrc file
-
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-source "$HOME/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-# source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-# source $HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source $HOMEBREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme
-# source $HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc
-# source $HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc
 
 # debug error message
 # zsh --source-trace -lic ''
@@ -24,8 +9,8 @@ source $HOMEBREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
 # Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
-# export CLOUDSDK_PYTHON=python3
+
+# export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time Oh My Zsh is loaded, in which case,
@@ -94,18 +79,16 @@ export ZSH="$HOME/.oh-my-zsh"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 
-plugins=(
-  git
-  fzf
-  vscode
-  kubectl
-  # zsh-syntax-highlighting
-  zsh-autosuggestions
-  # zsh-history-substring-search
-  # globalias
-)
-
-source $ZSH/oh-my-zsh.sh
+# plugins=(
+#   git
+#   fzf
+#   vscode
+#   kubectl
+#   # zsh-syntax-highlighting
+#   # zsh-autosuggestions
+#   # zsh-history-substring-search
+#   # globalias
+# )
 
 # User configuration
 
@@ -136,45 +119,35 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+# ใช้ zsh builtin color scheme
+# zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C $HOMEBREW_PREFIX/bin/terraform terraform
+# # ปรับแต่งสีของแถบ select
+# zmodload zsh/complist
+# # zstyle ':completion:*' list-colors 'di=34' 'fi=0' 'ex=32' 'bd=1;33' 'cd=1;35' 'pi=40;33' 'ln=36' 'so=1;35' 'mi=1;41' 'or=1;31' 'su=0;41' 'sg=0;46' 'ca=30;41' 'tw=30;42' 'ow=34;42' 'st=37;44' 'mh=44;37' 'lc=\e[1;36m' 'rc=\e[0m' 'ec=\e[0m' 'rv=\e[7m' 'hl=\e[1;44;97m'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# autoload -U compinit && compinit
+autoload -Uz compinit
+compinit
 
-if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
-    export TERM=xterm-256color
-fi
-
-bindkey '^[]' fzf-cd-widget
-bindkey "^b" backward-word
-bindkey "^[b" backward-char
-bindkey "^f" forward-word
-bindkey "^[f" forward-char
-bindkey "^[e" redo
-bindkey "^d" kill-word
-bindkey "^h" delete-char-or-list
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-
-
-# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+# auto tab highlight
+zmodload zsh/complist
+zstyle ':completion:*' menu select
 
 source ~/.zprofile
 
-# zprof # bottom of .zshrc
-#
-#
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+export SOURCE_FUNCTION_ZSH="$HOME/.dotfiles/terminal/zsh"
 
-# Amazon Q post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
+source $SOURCE_FUNCTION_ZSH/.init.zsh
 
-terraform-docs completion zsh > /usr/local/share/zsh/site-functions/_terraform-docs
-autoload -U compinit && compinit
+# theme 1
+# export ZSH="$HOME/.oh-my-zsh"
+# source $SOURCE_FUNCTION_ZSH/.oh-my-zsh.init
+# source $SOURCE_FUNCTION_ZSH/.p10k.init
 
+# theme 2
+source $SOURCE_FUNCTION_ZSH/.starship.zsh
+
+zstyle -d ':completion:*' list-colors
+zstyle ':completion:*:default' list-colors \
+ 'ma=38;2;255;255;255;48;2;104;104;104'

@@ -148,6 +148,12 @@ function remove() {
   done
 }
 
+function remove_file() {
+  for dir in "$@"; do
+    find . -name "$dir" -type f -prune -print -exec rm -rf '{}' \;
+  done
+}
+
 pip_requirements() {
   if test "$#" -eq 0
     then
@@ -176,21 +182,9 @@ function vs_edit_issue() {
    gh issue edit $1 --body-file /tmp/gh-$1.md
 }
 
-gcp_project() {
-  local projectId
-  projectId=$(gcloud projects list --format='value(projectId)' | fzf)
-  if [[ -n "$projectId" ]]; then
-    gcloud config set project "$projectId"
-    echo "Selected and set project: $projectId"
-  else
-    echo "No project selected."
-  fi
-}
-
 myip() {
   ifconfig en0 | grep "inet " | awk '{print $2}'
 }
-
 
 copy_env() {
   local source_folder="$1"
@@ -225,4 +219,24 @@ copy_env() {
 
 fzf_cd_wrapper() {
   zle fzf-cd-widget
+}
+
+coverage() {
+  EXCLUDE_PATTERN=$(paste -sd'|' .coverignore) && go test -covermode=count -coverprofile=coverage.out $(go list ./... | grep -v integration_tests | egrep -v "(${EXCLUDE_PATTERN})\$\$")
+}
+
+clear_clipbaord() {
+  pbcopy < /dev/null
+}
+
+# ===================================== gcp =====================================
+gcp_project() {
+  local projectId
+  projectId=$(gcloud projects list --format='value(projectId)' | fzf)
+  if [[ -n "$projectId" ]]; then
+    gcloud config set project "$projectId"
+    echo "Selected and set project: $projectId"
+  else
+    echo "No project selected."
+  fi
 }

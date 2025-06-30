@@ -1,0 +1,86 @@
+cursor-color = #8B8B8B
+cursor-text = #FFFFFF
+
+selection-background = #686868
+selection-foreground = #f5f5f5
+
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
+copy-on-select = clipboard
+
+font-family = DroidSansM Nerd Font
+font-size = 12
+
+background = #191919
+foreground = #FFFFFF
+
+adjust-cell-width = "-1%"
+adjust-cell-height = "10%"
+
+keybind = cmd+s>r=reload_config
+keybind = shift+enter=ignore
+keybind = ctrl+shift+h=scroll_to_top
+keybind = cmd+c=copy_to_clipboard
+keybind = cmd+v=paste_from_clipboard
+keybind = ctrl+g=ignore
+# keybind = ctrl+u=ignore
+# keybind = ctrl+k=ignore
+keybind = ctrl+shift+w=ignore
+
+
+palette = 0=#FFFFFF
+palette = 1=#FF6D6D
+palette = 2=#59F68D
+palette = 3=#F9B460
+palette = 4=#82AAFF
+palette = 5=#FABC7B
+palette = 6=#82AAFF
+palette = 7=#F5F5F5
+palette = 8=#686868
+palette = 9=#FF6D6D
+palette = 10=#59F68D
+palette = 11=#FFCB6B
+palette = 12=#6087D7
+palette = 13=#FABC7B
+palette = 14=#82AAFF
+palette = 15=#FFFFFF
+
+
+# palette = 0=#FFFFFF
+# palette = 1=#FF6D6D
+# palette = 2=#59F68D
+# palette = 3=#FFC669
+# palette = 4=#7B7BFA
+# palette = 5=#FABC7B
+# palette = 6=#82AAFF
+# palette = 7=#F5F5F5
+# palette = 8=#686868
+# palette = 9=#FF6D6D
+# palette = 10=#59F68D
+# palette = 11=#FFC669
+# palette = 12=#7B7BFA
+# palette = 13=#FABC7B
+# palette = 14=#82AAFF
+# palette = 15=#FFFFFF
+
+
+# palette = 0=#000000
+# palette = 1=#FF6D67
+# palette = 2=#59F68D
+# palette = 3=#FFCB6B
+# palette = 4=#7B79F9
+# palette = 5=#FF92D0
+# palette = 6=#82AAFF
+# palette = 7=#F4F4F4
+# palette = 8=#676767
+# palette = 9=#FF6D67
+# palette = 10=#59F68D
+# palette = 11=#FFCB6B
+# palette = 12=#7B79F9
+# palette = 13=#FF92D0
+# palette = 14=#82AAFF
+# palette = 15=#FFFEFE
+
+selection-background = #676767
+selection-foreground = #F4F4F4

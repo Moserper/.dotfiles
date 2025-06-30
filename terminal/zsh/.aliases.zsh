@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alias c='clear'
+alias c='surf .'
 alias godev='cd ~/Desktop/dev'
 alias air='$(go env GOPATH)/bin/air'
 

@@ -1,13 +1,10 @@
 [core]
-	excludesfile = /Users/foxbith20/.gitignore_global
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
+	excludesfile = /Users/pathomporn.s/.gitignore_global
 [mergetool "sourcetree"]
 	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
-[user]
-	name = moserper
-	email = 
 [commit]
 	template = $HOME/.stCommitMsg
 [pager]
@@ -19,16 +16,13 @@
 [browser "ch"]
 	cmd = open -a \"/Applications/Google Chrome.app\"
 [alias]
-  reflogprune = reflog expire --expire-unreachable=now --all
-	browse = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')\"; }; f"
-	pr = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')/compare/$(git config --get branch.$(git branch --show-current).merge | cut -d / -f 3-)?expand=1\"; }; f"
+  reflog-prune = reflog expire --expire-unreachable=now --all
 	ignore-list = "! cd -- \"${GIT_PREFIX:-.}\" && git ls-files -v ${1:-.} | sed -n -e \"s,^[a-z] \\(.*\\)$,${GIT_PREFIX:-./}\\1,p\" && git status --ignored --porcelain ${1:-.} 2>/dev/null | sed -n -e \"s/^\\(\\!\\! \\)\\(.*\\)$/\\2/p\" #"
 	amend = "commit --amend --no-edit"
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
   stash-unselect = "stash --include-untracked --keep-index"
   stash-select = "!f() { message=\"--\"; if [ -n \"$1\" ]; then message=\"-m $1\"; fi; git stash push \"$message\" $(git status --short | grep '^[MARCD]' | awk '{printf \"%s \", $2}' | sed 's/ $//'); }; f"
-	pr = "!f() { open \"$(git ls-remote --get-url $(git config --get branch.$(git branch --show-current).remote) | sed 's|git@github.com:\\(.*\\)$|https://github.com/\\1|' | sed 's|\\.git$||')/compare/$(git config --get branch.$(git branch --show-current).merge | cut -d / -f 3-)?expand=1\"; }; f"
-	pushup = !git push --set-upstream origin `git symbolic-ref --short HEAD`
+	push-up = !git push --set-upstream origin `git symbolic-ref --short HEAD`
 	cn = "!git checkout . && git clean -f -d"
 [pull]
 	ff = true
@@ -39,5 +33,12 @@
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
+[includeIf "gitdir:~/"]
+    path = ~/.gitconfig-personal
+[includeIf "gitdir:~/w/"]
+    path = ~/.gitconfig-work
+[user]
+	name = Pathomporn Subcharoenchai
+	email = 
 [credential]
 	helper = osxkeychain

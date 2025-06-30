@@ -1,0 +1,15 @@
+[user]
+    name = Pathomporn S
+    email = pathomporn.s@muze.co.th
+[alias]
+  browse = "!f() { \
+    remote_url=$(git ls-remote --get-url \"$(git config --get branch.$(git branch --show-current).remote)\"); \
+    repo_path=$(echo \"$remote_url\" | sed -E 's|git@bitbucket.org:(.*)\\.git|\\1|;s|https://[^/]*/||;s|\\.git$||'); \
+    open \"https://bitbucket.org/$repo_path\"; \
+  }; f"
+  pr = "!f() { \
+    remote_url=$(git ls-remote --get-url \"$(git config --get branch.$(git branch --show-current).remote)\"); \
+    base_branch=$(git config --get branch.$(git branch --show-current).merge | cut -d / -f 3-); \
+    repo_path=$(echo \"$remote_url\" | sed -E 's|git@bitbucket.org:(.*)\\.git|\\1|;s|https://[^/]*/||;s|\\.git$||'); \
+    open \"https://bitbucket.org/$repo_path/pull-requests/new\"; \
+  }; f"

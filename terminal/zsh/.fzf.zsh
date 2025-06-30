@@ -4,13 +4,23 @@
 # ---------
 # Add fzf to PATH
 # ----------------
+# if [[ ! "$PATH" == *${HOMEBREW_PREFIX}/opt/fzf/bin* ]]; then
+#   export PATH="${PATH:+${PATH}:}${HOMEBREW_PREFIX}/opt/fzf/bin"
+# fi
+
+# # Auto-completion
+# # ---------------
+# [[ $- == *i* ]] && source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" 2> /dev/null
+
+export FZF_BASE="${HOMEBREW_PREFIX}/opt/fzf"
+
+# Add fzf to PATH
+# ----------------
 if [[ ! "$PATH" == *${HOMEBREW_PREFIX}/opt/fzf/bin* ]]; then
   export PATH="${PATH:+${PATH}:}${HOMEBREW_PREFIX}/opt/fzf/bin"
 fi
 
-# Auto-completion
-# ---------------
-[[ $- == *i* ]] && source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" 2> /dev/null
+source <(fzf --zsh)
 
 # Key bindings
 # ------------
@@ -46,22 +56,36 @@ export EXCLUDE_FILE=$(cat ~/.rgignore | sed -e 's/^/--exclude /' | xargs)
 
 # export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE"
 #
-export FZF_DEFAULT_COMMAND="fd --type f --color=never --hidden $EXCLUDE_FILE --max-depth 5"
+
+_fzf_bind_opts="
+  --header 'CTRL-Y: Copy | CTRL-P: Paste'
+  --bind 'ctrl-y:execute-silent(pbcopy <<< {2..})'
+  --bind 'ctrl-p:transform-query(pbpaste)'
+  --bind 'ctrl-s:replace-query'
+  --bind 'ctrl-c:print-query+abort'
+"
+export FZF_DEFAULT_COMMAND="fd --type f --color=never $EXCLUDE_FILE --max-depth 4"
+
+export FZF_DEFAULT_OPTS="
+  ${_fzf_bind_opts}
+  --height=50%
+  --layout=reverse
+"
 
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
+export FZF_CTRL_T_OPTS="${_fzf_bind_opts}"
+
+
 export FZF_CTRL_R_OPTS="
-  --preview 'echo {}' --preview-window up:3:hidden:wrap
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --bind 'ctrl-c:print-query+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'
+  --preview 'echo {} | sed -E \"s/^ *[0-9]+ +//\"' --preview-window up:3:hidden:wrap
+  ${_fzf_bind_opts}
   --layout=reverse
-  "
+"
 
-export FZF_ALT_C_COMMAND="fd --type d -H --no-ignore-vcs $EXCLUDE_FILE --max-depth 5"
-export FZF_ALT_C_OPTS="--layout=reverse --inline-info"
+export FZF_ALT_C_COMMAND="fd --type d -H --no-ignore-vcs $EXCLUDE_FILE --max-depth 4"
 
+export FZF_ALT_C_OPTS="--layout=reverse --inline-info  ${_fzf_bind_opts}"
 
 _fzf_compgen_path() {
   eval fd --hidden --follow "$EXCLUDE_FILE" . "$1"

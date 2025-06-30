@@ -19,3 +19,8 @@ Public/
 node_modules/
 go/pkg/
 .cargo/
+.codeium
+.redis-insight
+.git/
+.esbuild
+.gitignore

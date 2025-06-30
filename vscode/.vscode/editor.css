@@ -1,5 +1,5 @@
-/* top */
-.monaco-workbench
+top
+  .monaco-workbench
   .part.editor
   > .content
   .editor-group-container
@@ -20,12 +20,12 @@
 
 /* left */
 .monaco-workbench .part > .content {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* bottom */
 .monaco-workbench .part.statusbar {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .mac {

@@ -159,15 +159,17 @@
          :rules [[:##caps_lock :left_control nil {:alone [:escape]}]]}
 
 
-        ;; {:des "Open Brave"
-        ;;  :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
+        {:des "Open Brave"
+         :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
 
-        {:des "Open Chrome"
-         :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
+        ;; {:des "Open Chrome"
+        ;;  :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
 
+        {:des "Open Windsurf"
+         :rules [[:!!k [:open "/Applications/Windsurf.app"]]]}
 
-        {:des "Open Cursor"
-         :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
+        ;; {:des "Open Cursor"
+        ;;  :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
 
         ;; {:des "Open VS Code"
         ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
@@ -181,18 +183,18 @@
         {:des "Terminal apps"
          :rules [:terminals
                  ;; undo
-                 [:!Tg :!Thyphen]
-                 ;; r
-                 [:!Cu [:escape :e]]
+                 [:!Tg [:escape :u]]
+                 ;; redo
+                 [:!Tu [:escape :e]]
                  ;; next char
-                 [:!CSf :right_arrow]
+                 [:!CSl :right_arrow]
                  ;; prev char
-                 [:!CSb :left_arrow]
+                 [:!CSh :left_arrow]
                  ;; move tmux next
                  [:!CSclose_bracket [:grave_accent_and_tilde :n]]
                  ;; move tmux prev
                  [:!CSopen_bracket [:grave_accent_and_tilde :p]]
-                 ;; search
+                 ;;  search
                  [:!Tslash [:escape :close_bracket]]
                  ;;
                 ]}
@@ -206,6 +208,9 @@
 
         ; {:des "Open iTerm"
         ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+
+        {:des "Open Discord"
+         :rules [[:!!d [:open "/Applications/Discord.app"]]]}
 
         {:des "Open Obsidian"
          :rules [[:!!n [:open "/Applications/Obsidian.app"]]]}
@@ -238,9 +243,16 @@
                  [:##y :!Cc]
                  [:##p :!Cv]
                  [:##u :!Cz]
-                 [:##spacebar :left_shift]]}
-                 ;;
+                 [:##spacebar :left_shift]
+                 ]}
+
+        {:des   "Super Duper Model 2"
+         :rules [
+                 [[:a :f] ["super-mode1" 1] nil {:afterup ["super-mode1" 0]} ]
+                 :super-mode1
+                ;;  [:##backslash :grave_accent_and_tilde]
+                 [:##j :page_down]
+                 [:##k :page_up]
+                 ]}
  ;; main list
         ]}
-
-

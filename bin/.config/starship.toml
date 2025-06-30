@@ -1,0 +1,280 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+[directory]
+home_symbol = "  ~"
+# truncation_length = 0         # Setting to 0 means no truncation at all
+truncation_length = 40
+truncation_symbol = '...'
+truncate_to_repo = false
+style = "5"
+
+# Replace the '❯' symbol in the prompt with '➜'
+[character]
+success_symbol = "[❯](bold green)" # Matches P10k's green '❯' for success
+error_symbol = "[❯](bold red)"   # Matches P10k's red '❯' for error
+vicmd_symbol = "[❮](bold green)" # Matches P10k's '❮' for vi command mode
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+[git_branch]
+style = "2"
+symbol = "  "
+
+[git_status]
+# format = """\
+# ([$branch](green))\
+# ([${tag_icon}${tag}](cyan))\
+# ([${commit}](green))\
+# ([:$remote_branch](green))\
+# ([${stashed}](green))\
+# ([${wip}](yellow))\
+# (${ahead_behind})\
+# (${push_ahead_behind})\
+# ([${action}](red))\
+# ([${conflicted}](red))\
+# ([${staged}](yellow))\
+# ([${modified}](yellow))\
+# ([${untracked}](14))\
+# ([${unknown}](yellow))"""
+
+# format = """\
+# ([$branch](green))\
+# ([${tag_icon}${tag}](cyan))\
+# ([${commit}](green))\
+# ([:$remote_branch](green))\
+# ([${wip}](yellow))\
+# ([${stashed}](green))\
+# ([${ahead_behind}](12))\
+# ([${push_ahead_behind}](12))\
+# ([${action}](red))\
+# ([${conflicted}](red))\
+# ([${staged}](yellow))\
+# ([${modified}](yellow))\
+# ([${untracked}](14))\
+# ([${unknown}](yellow))"""
+
+
+
+format = """\
+([$branch](green))\
+([${tag_icon}${tag}](#89dceb))\
+([${commit}](green))\
+([:$remote_branch](green))\
+([${wip}](#fabd2f))\
+([${stashed}](green))\
+([${ahead_behind}](green))\
+([${push_ahead_behind}](green))\
+([${action}](#fb4934))\
+([${conflicted}](#fb4934))\
+([${staged}](#fabd2f))\
+([${modified}](#fabd2f))\
+([${untracked}](#89dceb))\
+([${unknown}](##fabd2f))"""
+
+stashed = "*${count} "          # Matches P10k: *42 if have stashes.
+ahead = " ${count} "            # Matches P10k: ⇡42 if ahead
+behind = " ${count} "           # Matches P10k: ⇣42 if behind
+diverged = "⇣ ${behind_count} ⇡ ${ahead_count}" # Matches P10k's ⇣42⇡42 look
+untracked = "?${count} "        # Matches P10k: ?42 if have untracked files.
+staged = "+${count} "           # Matches P10k: +42 if have staged changes.
+modified = "!${count} "         # Matches P10k: !42 if have unstaged changes.
+conflicted = "~${count} "       # Matches P10k: ~42 if have merge conflicts.
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[aws]
+symbol = "  "
+
+[buf]
+symbol = " "
+
+[bun]
+symbol = " "
+
+[c]
+symbol = " "
+
+[cpp]
+symbol = " "
+
+[cmake]
+symbol = " "
+
+[conda]
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[dart]
+symbol = " "
+
+[deno]
+symbol = " "
+
+# [directory]
+# read_only = " 󰌾"
+
+[docker_context]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
+
+[gcloud]
+symbol = "  "
+
+# [git_branch]
+# symbol = " "
+
+[git_commit]
+tag_symbol = '  '
+
+[golang]
+symbol = " "
+
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[hostname]
+ssh_symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[lua]
+symbol = " "
+
+[memory_usage]
+symbol = "󰍛 "
+
+[meson]
+symbol = "󰔷 "
+
+[nim]
+symbol = "󰆥 "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+
+[ocaml]
+symbol = " "
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+Arch = " "
+Artix = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+
+# [package]
+# symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[pixi]
+symbol = "󰏗 "
+
+[python]
+symbol = " "
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[swift]
+symbol = " "
+
+[zig]
+symbol = " "
+
+[gradle]
+symbol = " "

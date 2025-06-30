@@ -1,0 +1,18 @@
+/* Add this to your existing CSS */
+
+.monaco-editor .cursors-and-text-layer .cursor {
+  background-color: var(
+    --theme-cursor
+  ) !important; /* Or any color like #FF0000 (red) */
+}
+
+/* You would then define --theme-cursor if you're using a variable */
+/* For example, if you define your variables at the root or similar: */
+:root {
+  --theme-cursor: #e10000; /* Light gray cursor */
+}
+
+/* Or directly: */
+.monaco-editor .cursors-and-text-layer .cursor {
+  background-color: #f0f0f0 !important; /* Light gray cursor */
+}

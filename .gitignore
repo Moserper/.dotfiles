@@ -1,2 +1,14 @@
-bin/.local/share/
 .DS_Store
+
+bin/.local/share/
+bin/.local/state/
+
+vscode/.vscode/extensions/
+
+.cursorrules
+
+bin/.config/nnn/plugins/*
+
+# bin/.config/nnn/plugins/
+plugins/*
+!plugins/README.md
