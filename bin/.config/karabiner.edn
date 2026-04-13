@@ -1,107 +1,145 @@
-{:profiles {:Default {:default true
-                      :sim     25     ;; simultaneous key press threshold (def: 50)
-                        ;; simlayer is implemented with to_if_alone and simultaneous key press feature
-                        ;; if keydown event for two different keys are pressed within :sim ms, the keypresses are considered simultaneous
-                      :delay   10    ;; to_delayed_action_delay_milliseconds (def: 500)
-                       ;; checkout karabiner's documentation
-                       ;; https://pqrs.org/osx/karabiner/json.html
-                       ;; basically it means time after which the key press is count delayed
+{:profiles
+ {:Default {:default true
+            :sim     25     ;; simultaneous key press threshold (def: 50)
+            ;; simlayer is implemented with to_if_alone and simultaneous key press feature
+            ;; if keydown event for two different keys are pressed within :sim ms, the keypresses are considered simultaneous
+            :delay   10    ;; to_delayed_action_delay_milliseconds (def: 500)
+            ;; checkout karabiner's documentation
+            ;; https://pqrs.org/osx/karabiner/json.html
+            ;; basically it means time after which the key press is count delayed
 
-                        ;; after :delay ms, the key press is considered to be delayed
-                        ;; (used for double-press macros)
-                      :alone   250    ;; to_if_alone_timeout_milliseconds (def: 1000)
-                        ;; https://pqrs.org/osx/karabiner/json.html#to-if-alone
-                        ;; affects to_if_alone behavior
-                        ;; simlayer is implemented with to_if_alone and simultaneous key press feature
+            ;; after :delay ms, the key press is considered to be delayed
+            ;; (used for double-press macros)
+            :alone   250    ;; to_if_alone_timeout_milliseconds (def: 1000)
+            ;; https://pqrs.org/osx/karabiner/json.html#to-if-alone
+            ;; affects to_if_alone behavior
+            ;; simlayer is implemented with to_if_alone and simultaneous key press feature
 
-                        ;; if keyup event comes within :alone ms from keydown, the key is not just pressed but held
-                      :held    500    ;; to_if_held_down_threshold_milliseconds (def: 500)
-                        ;; key is fired twice when :held ms is elapsed (otherwise seen as a hold command) (TODO WHAT IS THIS??)
-}} ;; profiles
+            ;; if keyup event comes within :alone ms from keydown, the key is not just pressed but held
+            :held    500    ;; to_if_held_down_threshold_milliseconds (def: 500)
+            ;; key is fired twice when :held ms is elapsed (otherwise seen as a hold command) (TODO WHAT IS THIS??)
+            }} ;; profiles
 
-; the default value is 250
+ ;; the default value is 250
  :simlayer-threshold 250
 
  :templates {:km "osascript -e 'tell application \"Keyboard Maestro Engine\" to do script \"%s\"'"
              :open "open \"%s\""} ;; templates
 
-;; Define different kinds of keyboards
-;; https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/conditions/device/
+ ;; Define different kinds of keyboards
+ ;; https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/conditions/device/
  :devices {:apple [{:vendor_id 1452, :product_id 641}
                    {:is_built_in_keyboard false}
                    {:ignore false}]
 
            :ducky [{:vendor_id 1046, :product_id 291}] ;; ducky one 2 sf (mechanical)
-           :aula [{:vendor_id 9610, :product_id 268}] ;; ducky one 2 sf (mechanical)
+           :aula  [{:vendor_id 9610, :product_id 268}] ;; ducky one 2 sf (mechanical)
+
+           :mouse_logi [{:product_id 45111 :vendor_id 1133}
+                        {:mouse_flip_vertical_wheel true}
+                        {:ignore false}]
 
            :kybs [;; Default for all keyboards
-                    {:vendor_id 1452 :product_id 641}
-                    {:vendor_id 1046 :product_id 291}
-                    {:vendor_id 9610, :product_id 268}
-                 ]
+                  {:vendor_id 1452 :product_id 641}
+                  {:vendor_id 1046 :product_id 291}
+                  {:vendor_id 9610, :product_id 268}]}
 
-;; layers are basically "hyper" keys
-;; press this in combination with something else and depending on your rule, make things happen
-       ;;     :layers {:tab-mode   {:key :tab}
-;;     :caps-mode {:key :caps_lock :alone {:key :escape}}
-} ;; layers
+ ;; layers are basically "hyper" keys
+ ;; press this in combination with something else and depending on your rule, make things happen
+ :layers {:tab-mode  {:key :tab :alone {:key :tab}}
+          :caps-mode {:key :caps_lock :alone {:key :escape}}} ;; layers
 
-;; simlayers are basically "hyper" keys
-;; layers works too, but only recommended for non-typing keys like . or tab
-;; to use more regular typing keys, use simlayers
-;;  :simlayers {:super-mode {:key :period}} ;; simlayers
+ ;; simlayers are basically "hyper" keys
+ ;; layers works too, but only recommended for non-typing keys like . or tab
+ ;; to use more regular typing keys, use simlayers
+ ;;  :simlayers {:super-mode {:key :period}} ;; simlayers
  :simlayers {} ;; simlayers
 
- :applications {:terminals  ["^com\\.apple\\.Terminal$",
-                             "^com\\.googlecode\\.iterm2$",
-                             "^co\\.zeit\\.hyperterm$",
-                             "^co\\.zeit\\.hyper$",
-                             "^io\\.alacritty$",
-                             "^org\\.alacritty$",
-                             "^net\\.kovidgoyal\\.kitty$"]}
+ :applications {:terminals ["^com\\.apple\\.Terminal$"
+                           "^com\\.googlecode\\.iterm2$"
+                           "^co\\.zeit\\.hyperterm$"
+                           "^co\\.zeit\\.hyper$"
+                           "^io\\.alacritty$"
+                           "^org\\.alacritty$"
+                           "^net\\.kovidgoyal\\.kitty$"
+                           "^com\\.ghostty\\.terminal$"
+                           "^com\\.mitchellh\\.ghostty$"
+                           "^com\\.github.wez\\.wezterm$"]
+
+               :browsers  ["^com\\.google\\.Chrome$"
+                           "^app\\.zen-browser\\.zen$"]}
 
  :input-sources {;; define input-source, these data can be founhd in Karabiner EventViewer gui
                  :us {:input_mode_id   ""
                       :input_source_id "com.apple.keylayout.US"
                       :language        "en"}}
-;; main contains multiple manipulators
+ ;; main contains multiple manipulators
  :main [;; each manipulator has a description and multiple rules
 
-      ;;{:des "..."                               ;; -> description
-      ;; :rules[
-      ;;          [<from>  <to>  <conditions>]    ;; -> rule 1
-      ;;          [<from>  <to>  <conditions>]    ;; -> rule 2
-      ;; ]}
+        ;;{:des "..."                               ;; -> description
+        ;; :rules[
+        ;;          [<from>  <to>  <conditions>]    ;; -> rule 1
+        ;;          [<from>  <to>  <conditions>]    ;; -> rule 2
+        ;; ]}
 
-      ;; rule [:period ["period-mode" 1] nil {:afterup ["period-mode" 0] :alone :period}]
-      ;;       |_____| |_______________| |_| |_________________________________________|
-      ;;        <from>    <to>      <conditions>         <other options>
-      ;;
-      ;; karabiner docs: ;; https://pqrs.org/osx/karabiner/json.html#complex_modifications-manipulator-definition
-      ;; <other options> includs ~to_if_alone~, ~to_if_held_down~,~to_after_key_up~, ~to_delayed_action~ and ~parameters~.
-      ;;
+        ;; rule [:period ["period-mode" 1] nil {:afterup ["period-mode" 0] :alone :period}]
+        ;;       |_____| |_______________| |_| |_________________________________________|
+        ;;        <from>    <to>      <conditions>         <other options>
+        ;;
+        ;; karabiner docs: ;; https://pqrs.org/osx/karabiner/json.html#complex_modifications-manipulator-definition
+        ;; <other options> includs ~to_if_alone~, ~to_if_held_down~,~to_after_key_up~, ~to_delayed_action~ and ~parameters~.
+        ;;
 
-      ;; (custom variables) & modifiers -> Advanced
-      ;; https://github.com/yqrashawn/GokuRakuJoudo/blob/master/examples.org#custom-variable
+        ;; (custom variables) & modifiers -> Advanced
+        ;; https://gist.github.com/joshuawagner/b6d53fba5e361906f38832feee027cb3
+        ;; https://github.com/yqrashawn/GokuRakuJoudo/blob/master/examples.org#custom-variable
 
-      ;; ----------------------------------
-      ;; Hardware keyboard mappings
-      ;; ----------------------------------
+        ;; ----------------------------------
+        ;; Hardware keyboard mappings
+        ;; ----------------------------------
 
-      ;; !  | means mandatory
-      ;; #  | means optional
-      ;; C  | left_command
-      ;; T  | left_control
-      ;; O  | left_option
-      ;; S  | left_shift
-      ;; F  | fn
-      ;; Q  | right_command
-      ;; W  | right_control
-      ;; E  | right_option
-      ;; R  | right_shift
-      ;; P  | caps_lock
-      ;; !! | mandatory command + control + optional + shift (hyper)
-      ;; ## | optional any
+        ;; !  | means mandatory
+        ;; #  | means optional
+        ;; C  | left_command
+        ;; T  | left_control
+        ;; O  | left_option
+        ;; S  | left_shift
+        ;; F  | fn
+        ;; Q  | right_command
+        ;; W  | right_control
+        ;; E  | right_option
+        ;; R  | right_shift
+        ;; P  | caps_lock
+        ;; !! | mandatory command + control + optional + shift (hyper)
+        ;; ## | optional any
+        ;; :fn {:modifier true}
+        ;; :return_or_enter {:label "enter" :display true}
+        ;; :escape {:display true}
+        ;; :delete_or_backspace {:label "backspace" :display true}
+        ;; :delete_forward {:label "del" :display true}
+        ;; :tab {:display true}
+        ;; :spacebar {:display true}
+        ;; :hyphen {:label "hyphen (-)" :display true}
+        ;; :equal_sign {:label "equal_sign (=)" :display true}
+        ;; :open_bracket {:label "open_bracket [" :display true}
+        ;; :close_bracket {:label "close_bracket ]" :display true}
+        ;; :backslash {:label "backslash (\\)" :display true}
+        ;; :non_us_pound {}
+        ;; :semicolon {:label "semicolon (;)" :display true}
+        ;; :quote {:label "quote (')" :display true}
+        ;; :grave_accent_and_tilde {:label "grave_accent_and_tilde ()" :display true}
+        ;; :comma {:label "comma (,)" :display true}
+        ;; :period {:label "period (.)" :display true}
+        ;; :slash {:label "slash (/)" :display true}
+        ;; :non_us_backslash {}
+        ;; :up_arrow {:display true}
+        ;; :down_arrow {:display true}
+        ;; :left_arrow {:display true}
+        ;; :right_arrow {:display true}
+        ;; :page_up {:display true}
+        ;; :page_down {:display true}
+        ;; :home {:display true}
+        ;; :end {:display true}
 
         {:des "Ducky One 2 SF specific mappings"
          :rules [:ducky
@@ -114,20 +152,32 @@
          :rules [:aula
                  [:grave_accent_and_tilde :escape]
                  [:backslash :grave_accent_and_tilde]
-                 [:escape :backslash]
+                 [:page_up :backslash]
                  [:##left_option :left_command]
                  [:##left_command :left_option]
                  [:##right_option :right_command]
                  [:##right_command :right_option]]}
 
-      ;; ----------------------------------
-      ;; ----------------------------------
-      ;; Key mappings
-      ;; ----------------------------------
-      ;; ----------------------------------
+        {:des "Mouse logi"
+         :rules [:mouse-logi
+                 [:grave_accent_and_tilde :escape]
+                 [:backslash :grave_accent_and_tilde]
+                 [:escape :backslash]
+                 [:##left_option :left_command]
+                 [:##left_command :left_option]
+                 [:##right_option :right_command]
+                 [:##right_command :right_option]]}
+        ;; ----------------------------------
+        ;; ----------------------------------
+        ;; Key mappings
+        ;; ----------------------------------
+        ;; ----------------------------------
 
-        {:des "ctrl + delete to delete word"
-         :rules [[:!T##delete_or_backspace :!O##delete_or_backspace]]}
+        ;; {:des "ctrl + delete to delete word"
+        ;;  :rules [[:!T##delete_or_backspace :!O##delete_or_backspace]]}
+
+        ;; {:des "cmd + delete to delete word"
+        ;;  :rules [[:!C##delete_or_backspace :delete_forward]]}
 
         {:des "Caps Lock + Left Command -> Hyper"
          :rules [[:!C##caps_lock :!CTOleft_shift]]}
@@ -135,67 +185,132 @@
         {:des "Caps Lock -> Control | Alone (Escape)"
          :rules [[:##caps_lock :left_control nil {:alone [:escape]}]]}
 
+        {:des "Left Control -> Left Option"
+         :rules [[:##left_control :right_option]]}
+
+        {:des "Open Finder"
+         :rules [[:!!f ["open -a Finder.app"]]]}
+
+        ;; {:des "Open ChatGPT"
+        ;;  :rules [[:!!c ["open /Applications/ChatGPT.app"]]]}
+
+        {:des "Open Claude"
+         :rules [[:!!c ["open /Applications/Claude.app"]]]}
+
+        {:des "Open Preview"
+         :rules [[:!!i ["open -a Preview"]]]}
+
+        {:des "Open Google Gemini"
+         :rules [[:!!h ["open -b com.apple.Safari.WebApp.AFA8E8B7-1527-40F9-9275-A89E8335A32F"]]]}
+        ;;
+
+        {:des "Open TablePlus"
+         :rules [[:!!o ["open /Applications/TablePlus.app"]]]}
+
+        ;; {:des "Open Codex"
+        ;;  :rules [[:!!h ["open /Applications/Claude.app"]]]}
+
+        ;; {:des "Open Zen"
+        ;;  :rules [[:!!j ["open /Applications/Zen.app"]]]}
 
         ;; {:des "Open Brave"
         ;;  :rules [[:!!j [:open "/Applications/Brave Browser.app"]]]}
 
-        {:des "Open Chrome"
-         :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
+        {:des "Open Arc"
+         :rules [[:!!j [:open "/Applications/Arc.app"]]]}
 
+        ;; {:des "Open Chrome"
+        ;;  :rules [[:!!j [:open "/Applications/Google Chrome.app"]]]}
 
-        {:des "Open Cursor"
-         :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
+        ;; {:des "Open Windsurf"
+        ;;  :rules [[:!!k ["open /Applications/Windsurf.app"]]]}
+
+        {:des "Open Antigravity"
+         :rules [[:!!k ["open /Applications/Antigravity.app"]]]}
+
+        ;; {:des "Open Cursor"
+        ;;  :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
 
         ;; {:des "Open VS Code"
         ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
 
-        {:des "Open terminal"
-         :rules [[:!!l [:open "/System/Applications/Utilities/Terminal.app"]]]}
+        {:des "Open WezTerm"
+         :rules [[:!!l ["open /Applications/WezTerm.app"]]]}
 
-        ; {:des "Open iTerm"
-        ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+        ;; {:des "Open Ghostty"
+        ;;  :rules [[:!!l ["open /Applications/Ghostty.app"]]]}
 
-        {:des "Open Slack"
-         :rules [[:!!s [:open "/Applications/Slack.app"]]]}
-
-        {:des "Open Postman"
-         :rules [[:!!p [:open "/Applications/Postman.app"]]]}
-
-        {:des "Open Spotify"
-         :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
+        ;; {:des "Open terminal"
+        ;;  :rules [[:!!l [:open "/System/Applications/Utilities/Terminal.app"]]]}
 
         {:des "Terminal apps"
          :rules [:terminals
                  ;; undo
-                 [:!Tg :!Thyphen]
-                 ;; r
-                 [:!Cu [:escape :e]]
+                 [:!Tg [:escape :u]]
+                 ;; redo
+                 [:!Tu [:escape :e]]
                  ;; next char
-                 [:!CSf :right_arrow]
+                 [:!CSl :right_arrow]
                  ;; prev char
-                 [:!CSb :left_arrow]
+                 [:!CSh :left_arrow]
                  ;; move tmux next
                  [:!CSclose_bracket [:grave_accent_and_tilde :n]]
                  ;; move tmux prev
                  [:!CSopen_bracket [:grave_accent_and_tilde :p]]
-                 ;; search
-                 [:!Tslash [:escape :close_bracket]]
-                 ;;
-                ]}
+                 ;;  search
+                 [:!Tslash [:escape :close_bracket]]]}
 
-        {:des   "Super Duper Model"
+        {:des "Browser apps"
+         :rules [:browsers
+                 ;; workaround
+                 ;;  [:!CSb :left_arrow]
+                 [:!CSm [:!Cl :!Cc :!Cw :!Cn :!Cv :return_or_enter]]
+                 [:!CSreturn_or_enter [:!Ca :!Cc :escape :!Ct :!Cl :!Cv :return_or_enter]]]}
+
+        ; {:des "Open iTerm"
+        ;  :rules [[:!!l [:open "/Applications/iTerm.app"]]]}
+        {:des "Open RedisInsight"
+         :rules [[:!!r ["open /Applications/Redis Insight.app"]]]}
+
+        {:des "Open Discord"
+         :rules [[:!!d ["open /Applications/Discord.app"]]]}
+
+        {:des "Open Obsidian"
+         :rules [[:!!n ["open /Applications/Obsidian.app"]]]}
+
+        {:des "Open Slack"
+         :rules [[:!!s ["open /Applications/Slack.app"]]]}
+
+        {:des "Open Postman"
+         :rules [[:!!p ["open /Applications/Postman.app"]]]}
+
+        {:des "Open Spotify"
+         :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
+
+        {:des "Super Duper Model"
          :rules [
-                 [[:s :d] ["super-mode" 1] nil {:afterup ["super-mode" 0]} ]
-                 :super-mode
-                ;;  [:##backslash :grave_accent_and_tilde]
-                 [:##h :left_arrow]
-                 [:##l :right_arrow]
-                 [:##j :down_arrow]
-                 [:##k :up_arrow]
-                 [:##a :left_option]
-                 [:##caps_lock :left_control]
-                 [:##f :left_command]
-                 [:##spacebar :left_shift]]}
-                 ;;
+                [[:s :d] ["super-mode" 1] nil {:afterup ["super-mode" 0]}]
+                :super-mode
+                ;; [:##backslash :grave_accent_and_tilde]
+                ;; [:##caps_lock :left_control]
+                ;; [:!Sh :!Sleft_arrow]
+                ;; [:!Oh :!Oleft_arrow]
+                [:##u :!Cz]
+                [:##semicolon :right_shift]
+                [:##spacebar :right_shift]
+                [:##right_command :left_control]
+                [:##h :left_arrow]
+                [:##l :right_arrow]
+                [:##j :down_arrow]
+                [:##k :up_arrow]
+                ;; [:##r [:grave_accent_and_tilde :t]]
+                [:##a :left_option]
+                [:##f :right_command]
+                [:##y :!Cc]
+                [:##o :!Cx]
+                [:##p :!Cv]
+                [:##n :escape]
+                [:##left_command :right_shift]
+               ]}
  ;; main list
-        ]}
+]}

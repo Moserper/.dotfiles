@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# apm: smart wrapper for make -C $APM_ROOT
+# Supports:
+#   1) apm app.run PROJECT=favstay ENV=prod
+#   2) apm PROJECT=favstay ENV=prod -- app.run
+# Completion hooks: --list-projects / --list-envs <proj> / --list-targets <proj> <env>
+
+set -euo pipefail
+APM_ROOT="${APM_ROOT:-$HOME/w/run}"
+
+# Predeclare arrays (safe with set -u)
+declare -a vars
+declare -a targets
+vars=()
+targets=()
+
+is_var() { [[ "$1" == *=* ]]; }
+
+# ----- completion hooks (BSD-friendly; use ls not find -printf) -----
+if [[ "${1-}" == "--list-projects" ]]; then
+  ls -1 "$APM_ROOT" | grep -vE '^(Makefile|env|node_modules|\..+)$' || true
+  exit 0
+fi
+
+if [[ "${1-}" == "--list-envs" ]]; then
+  proj="${2-}"; [[ -z "${proj:-}" ]] && exit 0
+  ls -1 "$APM_ROOT/$proj" 2>/dev/null | grep -vE '^(Makefile|\..+)$' || true
+  exit 0
+fi
+
+if [[ "${1-}" == "--list-targets" ]]; then
+  proj="${2-}"; env="${3-}"; [[ -z "${proj:-}" || -z "${env:-}" ]] && exit 0
+  dir="$APM_ROOT/$proj/$env"; [[ -d "$dir" ]] || exit 0
+  make -C "$dir" -qp \
+    | awk -F':' '/^[a-zA-Z0-9_.-][^$#\/\t=]*:([^=]|$)/ {print $1}' \
+    | grep -vE '^(Makefile|\.PHONY|default|all)$' \
+    | sort -u
+  exit 0
+fi
+
+# ----- parse args (support both styles) -----
+saw_dd=0
+for arg in "$@"; do
+  if [[ "$arg" == "--" ]]; then
+    saw_dd=1; continue
+  fi
+  if [[ $saw_dd -eq 1 ]]; then
+    targets+=("$arg")
+  else
+    if is_var "$arg"; then
+      vars+=("$arg")
+    else
+      targets+=("$arg")
+    fi
+  fi
+done
+
+# If no target provided, call dispatcher with only vars (or none)
+if [[ ${#targets[@]} -eq 0 ]]; then
+  if [[ ${#vars[@]} -eq 0 ]]; then
+    exec make -C "$APM_ROOT"
+  else
+    exec make -C "$APM_ROOT" "${vars[@]}"
+  fi
+fi
+
+
+# Normal: targets then vars
+if [[ ${#vars[@]} -eq 0 ]]; then
+  exec make -C "$APM_ROOT" "${targets[@]}"
+else
+  exec make -C "$APM_ROOT" "${targets[@]}" "${vars[@]}"
+fi

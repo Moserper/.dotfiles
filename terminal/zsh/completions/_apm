@@ -1,0 +1,111 @@
+#compdef apm
+# zsh completion for `apm`
+
+# --- helpers: fallback discovery (when apm --list-* is unavailable) ---
+base_dir="${HOME}/w/run"
+_apm_fallback_projects() {
+  local base
+  for base in "$base_dir"; do
+    [[ -d $base ]] || continue
+    print -l -- $base/*(/N:t)
+  done
+}
+
+_apm_fallback_envs() {
+  local proj=$1 base
+  for base in "$base_dir/$proj"; do
+    [[ -d $base ]] || continue
+    print -l -- $base/*(/N:t)
+  done
+  print -l -- dev staging prod test
+}
+
+_apm_fallback_targets() {
+  local proj=$1 env=$2 mk
+  for mk in "$base_dir/$proj/$env/Makefile" "$base_dir/$proj/$env/Makefile" "$base_dir/$proj/$env/Makefile"; do
+    [[ -f $mk ]] || continue
+    awk -F: '/^[A-Za-z0-9_.-]+:/ {print $1}' "$mk" | sort -u
+    return
+  done
+}
+# --- end helpers ---
+
+_apm() {
+  local -a projects envs targets
+  local project env cur
+
+  cur=${words[CURRENT]}
+
+  # Extract current PROJECT/ENV from cmdline
+  local w
+  for w in ${words[@]}; do
+    [[ $w == PROJECT=* ]] && project=${w#PROJECT=}
+    [[ $w == ENV=* ]] && env=${w#ENV=}
+  done
+
+  # Handle PROJECT=value completion
+  if [[ $cur == PROJECT=* ]]; then
+    projects=(${(f)"$(apm --list-projects 2>/dev/null)"})
+    (( $#projects )) || projects=(${(f)"$(_apm_fallback_projects)"})
+
+    compset -P 'PROJECT='
+    if (( $#projects )); then
+      _describe -t projects 'project' projects
+    else
+      _message 'no projects found'
+    fi
+    return
+  fi
+
+  # Handle ENV=value completion
+  if [[ $cur == ENV=* ]]; then
+    if [[ -n $project ]]; then
+      envs=(${(f)"$(apm --list-envs "$project" 2>/dev/null)"})
+      (( $#envs )) || envs=(${(f)"$(_apm_fallback_envs $project)"})
+    fi
+
+    compset -P 'ENV='
+    if (( $#envs )); then
+      _describe -t envs 'environment' envs
+    else
+      _message 'no envs found'
+    fi
+    return
+  fi
+
+  # Preload lists (silence errors)
+  projects=(${(f)"$(apm --list-projects 2>/dev/null)"})
+  [[ -n $project ]] && envs=(${(f)"$(apm --list-envs "$project" 2>/dev/null)"})
+  [[ -n $project && -n $env ]] && targets=(${(f)"$(_apm_fallback_targets "$project" "$env" 2>/dev/null)"})
+
+  # Fallbacks if the apm --list-* commands are unavailable
+  (( $#projects )) || projects=(${(f)"$(_apm_fallback_projects)"})
+  if [[ -n $project ]]; then
+    (( $#envs )) || envs=(${(f)"$(_apm_fallback_envs $project)"})
+  fi
+  if [[ -n $project && -n $env ]]; then
+    (( $#targets )) || targets=(${(f)"$(_apm_fallback_targets $project $env)"})
+  fi
+
+  # If user typed "--", everything after should be a target
+  if (( ${words[(I)--]} )); then
+    if (( $#targets )); then
+      _describe -t targets 'targets' targets
+    else
+      _message 'no targets found'
+    fi
+    return
+  fi
+
+  # If we have both project and env, offer targets
+  if [[ -n $project && -n $env ]]; then
+    if (( $#targets )); then
+      _describe -t targets 'targets' targets
+    fi
+    return
+  fi
+
+  # Offer PROJECT=, ENV=, and -- options
+  compadd -S '=' PROJECT ENV
+  compadd -- '--'
+}

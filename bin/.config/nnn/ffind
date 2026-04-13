@@ -1,0 +1,97 @@
+#!/usr/bin/env sh
+
+# Description: Fuzzy search directories (to a max depth) from multiple locations (or PWD) and cd to the selected dir.
+# Dependencies: fzf. Recommends fd, falls back to find.
+
+# POSIX compliant
+# Author: Anna Arad, Arun Prakash Jana, KlzXS. Revised by Gemini.
+
+IFS="$(printf '\n\r')"
+# shellcheck disable=SC1090,SC1091
+. "$(dirname "$0")"/.nnn-plugin-helper
+
+# --- Configuration ---
+# Context for nnn to open in the current tab
+CTX=1
+LIST="${LIST:-""}"
+# Define the path to your exclude file. Contains one pattern per line.
+EXCLUDE_FILE_PATH="${HOME}/.rgignore"
+# Set the maximum depth for the search.
+MAX_SEARCH_DEPTH=4
+
+# --- Dependency Checks ---
+if ! type fzf >/dev/null 2>&1; then
+    printf "fzf missing!"
+    read -r _
+    exit 1
+fi
+
+# --- Determine Search Locations ---
+if [ -n "$1" ] && [ -f "$1" ] && [ "$(file -b --mime-type "$1")" = 'text/plain' ]; then
+    LIST="$1"
+fi
+
+# --- Build Exclude Arguments ---
+# This section robustly builds the arguments for fd or find
+exclude_args_fd=""
+find_prune_statement=""
+if [ -f "$EXCLUDE_FILE_PATH" ]; then
+    # Build list of -name 'pattern' -o -name 'pattern2' for find's prune
+    prune_list=$(sed -e "s/^/-name '/" -e "s/$/' -o/" "$EXCLUDE_FILE_PATH" | tr -d '\n')
+    # Remove trailing -o
+    prune_list=${prune_list%-o}
+
+    if [ -n "$prune_list" ]; then
+        find_prune_statement="\( $prune_list \) -prune -o"
+    fi
+
+    # Build arguments for fd: --exclude 'pattern'
+    while IFS= read -r pattern; do
+        if [ -n "$pattern" ]; then
+            exclude_args_fd="${exclude_args_fd} --exclude '${pattern}'"
+        fi
+    done < "$EXCLUDE_FILE_PATH"
+fi
+
+# --- Execute Search ---
+sel=""
+
+if [ -n "$LIST" ]; then
+    # --- Multi-Location Search Mode ---
+    tmp_dir_list=$(mktemp)
+    while IFS= read -r path; do
+        [ -d "$path" ] && printf "%s\n" "$path" >> "$tmp_dir_list"
+        [ -f "$path" ] && printf "%s\n" "$(dirname "$path")" >> "$tmp_dir_list"
+    done < "$LIST"
+
+    if type fd >/dev/null 2>&1; then
+        # Use xargs to search in each directory from the list
+        cmd="xargs -d '\n' < '$tmp_dir_list' -I{} fd --max-depth $MAX_SEARCH_DEPTH --type d --hidden --absolute-path . '{}' $exclude_args_fd"
+    else
+        # Using -prune is the most efficient way to exclude dirs in find
+        cmd="xargs -d '\n' < '$tmp_dir_list' -I{} find '{}' -maxdepth $MAX_SEARCH_DEPTH $find_prune_statement -type d -print"
+    fi
+    rm -- "$tmp_dir_list"
+else
+    # --- Current Directory Search Mode (Fallback) ---
+    search_root="$PWD"
+    if type fd >/dev/null 2>&1; then
+        cmd="fd --max-depth $MAX_SEARCH_DEPTH --type d --hidden --absolute-path . '$search_root' $exclude_args_fd"
+    else
+        cmd="find '$search_root' -maxdepth $MAX_SEARCH_DEPTH $find_prune_statement -type d -print"
+    fi
+fi
+
+# The eval command is used here to correctly process the constructed arguments
+# It is safe because the arguments are controlled and quoted within the script.
+sel=$(eval "$cmd" | fzf)
+
+# --- Process Selection ---
+if [ -n "$sel" ] && [ -d "$sel" ]; then
+    # Since we are finding directories, we use the selection directly.
+    nnn_cd "$sel" "$CTX"
+
+    # Add a tiny delay to work around a race condition in nnn
+    # where the 'cd' command is missed if the script exits too quickly.
+    sleep 0.1
+fi

@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# ## History wrapper
+# function omz_history {
+#   local clear list
+#   zparseopts -E c=clear l=list
+#
+#   if [[ -n "$clear" ]]; then
+#     # if -c provided, clobber the history file
+#     echo -n >| "$HISTFILE"
+#     echo >&2 History file deleted. Reload the session to see its effects.
+#   elif [[ -n "$list" ]]; then
+#     # if -l provided, run as if calling `fc' directly
+#     builtin fc "$@"
+#   else
+#     # unless a number is provided, show all history events (starting from 1)
+#     [[ ${@[-1]} = *[0-9]* ]] && builtin fc -l "$@" || builtin fc -l "$@" 1
+#   fi
+# }
+#
+# # Timestamp format
+# case $HIST_STAMPS in
+#   "mm/dd/yyyy") alias history='omz_history -f' ;;
+#   "dd.mm.yyyy") alias history='omz_history -E' ;;
+#   "yyyy-mm-dd") alias history='omz_history -i' ;;
+#   "") alias history='omz_history' ;;
+#   *) alias history="omz_history -t '$HIST_STAMPS'" ;;
+# esac
+#
+#
+## History file configuration
+# History file location and size
+[ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000               # Maximum events in internal history
+SAVEHIST=50000               # Maximum events in history file
+
+# Core history behavior
+setopt INC_APPEND_HISTORY    # Add commands to history as they're executed
+setopt NO_SHARE_HISTORY      # Don't share history between multiple zsh sessions
+setopt NO_EXTENDED_HISTORY   # Don't save timestamps with history
+
+# History deduplication and cleaning
+setopt HIST_IGNORE_DUPS      # Don't record a command that was just recorded
+setopt HIST_FIND_NO_DUPS     # Don't display duplicates when searching
+setopt HIST_IGNORE_SPACE     # Don't record commands starting with space
+setopt HIST_SAVE_NO_DUPS     # Don't write duplicate entries to history file
+setopt HIST_REDUCE_BLANKS    # Remove superfluous blanks from commands
+setopt HIST_EXPIRE_DUPS_FIRST # Remove duplicates first when trimming history
+setopt HIST_VERIFY           # Don't execute immediately upon history expansion
+
+# Enhanced history cleaning function
+# More efficient than the previous implementation
+function clean_history() {
+  local tmp_file=$(mktemp)
+  
+  # Using LC_ALL=C for better performance
+  # LC_ALL=C sort -u "$HISTFILE" > "$tmp_file"
+
+  LC_ALL=C sed '1!G;h;$!d' "$HISTFILE" \
+    | awk '!seen[$0]++' \
+    | sed '1!G;h;$!d' > "$tmp_file"
+
+  # Atomic replacement with backup
+  if [[ -s "$tmp_file" ]]; then
+    cp "$HISTFILE" "$HISTFILE.backup-$(date +%F)" 
+    mv "$tmp_file" "$HISTFILE"
+    echo "History cleaned and backed up"
+  else
+    echo "Error cleaning history - temp file empty"
+    rm "$tmp_file"
+  fi
+}
+
+# Run clean_history on shell exit
+autoload -Uz add-zsh-hook
+# add-zsh-hook zshexit clean_history
+#
+# Optional aliases for history management
+alias hc='clean_history'           # Quick history cleanup
+alias hs='history 1 | grep -i'     # Search history
