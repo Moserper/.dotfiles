@@ -1,7 +1,15 @@
 gui:
-  authorColors: {}
-  branchColors: {}
-  branchColorPatterns: {}
+  authorColors:
+    'Moserper': 'blue'
+  branchColors:
+    'main': '#ff8700'
+    'master': '#ff8700'
+    'dev': '#5fd7ff'
+  branchColorPatterns:
+    'release/*': '#ff5f87'
+    'feature/*': '#afd700'
+    'fix/*': '#d79300'
+    'hotfix/*': '#ff5f87'
   customIcons:
     filenames: {}
     extensions: {}
@@ -67,7 +75,7 @@ gui:
   commitAuthorShortLength: 2
   commitAuthorLongLength: 17
   commitHashLength: 8
-  showBranchCommitHash: false
+  showBranchCommitHash: true
   showDivergenceFromBaseBranch: none
   commandLogSize: 8
   splitDiff: auto
@@ -89,10 +97,11 @@ gui:
   switchTabsWithPanelJumpKeys: false
 git:
   pagers:
-    - colorArg: always
+    - name: plain
       pager: ""
-      useConfig: false
-      externalDiffCommand: ""
+    - name: delta
+      colorArg: always
+      pager: delta --dark --paging=never --side-by-side
   commit:
     signOff: false
     autoWrapCommitMessage: true
@@ -133,7 +142,21 @@ refresher:
 confirmOnQuit: false
 quitOnTopLevelReturn: false
 disableStartupPopups: false
-customCommands: []
+customCommands:
+  - key: '<c-j>'
+    context: 'files'
+    description: 'Auto-commit staged changes with an opencommit (Gemini) message'
+    loadingText: 'Asking opencommit...'
+    command: |
+      git diff --cached --quiet && git add -A
+      git diff --cached --quiet && { echo "Nothing to commit."; exit 0; }
+      oco --yes
+    output: terminal
+  # - key: 'X'
+  #   command: 'git fetch --prune'
+  #   context: 'branches'
+  #   loadingText: 'Pruning...'
+  #   description: 'Fetch and prune remote branches'
 services: {}
 notARepository: prompt
 promptToReturnFromSubprocess: true

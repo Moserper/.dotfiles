@@ -1,4 +1,4 @@
-export CARAPACE_BRIDGES='bash,fish,inshellisense'    # ตัด zsh ออก
+export CARAPACE_BRIDGES='zsh,bash,fish,inshellisense'    # ตัด zsh ออก
 source <(carapace _carapace)                         # ลงทะเบียน carapace
 carapace --style 'carapace.Description=color115,bold'  # optional style
 

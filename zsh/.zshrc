@@ -165,3 +165,8 @@ zstyle -d ':completion:*' list-colors
 zstyle ':completion:*:default' list-colors \
  'ma=38;2;255;255;255;48;2;104;104;104'
 export PATH="$HOME/.config/apm:$PATH"
+export PATH="$HOME/.local/scripts:$PATH"
+
+# Added by Antigravity IDE
+export PATH="/Users/pathomporn.s/.antigravity-ide/antigravity-ide/bin:$PATH"
+export PATH="$HOME/.claude/bin:$PATH"   # maw (agent-os)

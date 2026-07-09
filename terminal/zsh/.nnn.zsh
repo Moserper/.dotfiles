@@ -2,7 +2,7 @@
 
 BLK="04" CHR="04" DIR="04" EXE="00" REG="00" HARDLINK="00" SYMLINK="06" MISSING="00" ORPHAN="01" FIFO="0F" SOCK="0F" OTHER="02"
 
-set --export NNN_INFO "/tmp/nnn.fifo"
+export NNN_INFO="/tmp/nnn.fifo"
 
 n () {
   # Block nesting of nnn in subshells
@@ -10,7 +10,8 @@ n () {
     echo "nnn is already running"
       return
   }
-  export EDITOR="cursor --wait"
+  # export EDITOR="code --wait"
+  export EDITOR="zed --wait"
 
   # The behaviour is set to cd on quit (nnn checks if NNN_TMPFILE is set)
   # If NNN_TMPFILE is set to a custom path, it must be exported for nnn to
@@ -30,8 +31,9 @@ n () {
   export NNN_ARCHIVE="\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$"
   export NNN_COLORS="2136"
   export NNN_FCOLORS="$BLK$CHR$DIR$EXE$REG$HARDLINK$SYMLINK$MISSING$ORPHAN$FIFO$SOCK$OTHER"
-  export NNN_PLUG='c:!printf %s "$nnn" | pbcopy*;f:ffind;p:peview-tui;n:newfile-from-clipboard;d:newdir-from-clipboard'
-  export NNN_BMS="d:$HOME/w/d;s:$HOME/.dotfiles;l:$HOME/w/l;t:$HOME/Desktop;o:$HOME/Downloads"
+  # export NNN_PLUG='d:!printf %s "$PWD" | pbcopy*;c:!printf %s "$nnn" | pbcopy*;f:ffind;p:peview-tui;N:newfile-from-clipboard;D:newdir-from-clipboard'
+  export NNN_PLUG='g:!lazygit;d:!printf %s "$PWD/$nnn" | pbcopy*;c:!printf %s "$nnn" | pbcopy*;f:ffind;p:peview-tui;e:!claude --dangerously-skip-permissions'
+  export NNN_BMS="d:$HOME/w/d;s:$HOME/.dotfiles;l:$HOME/w/l;t:$HOME/Desktop;o:$HOME/Downloads;m:$HOME/m;"
 
   # Unmask ^Q (, ^V etc.) (if required, see `stty -a`) to Quit nnn
   # stty start undef

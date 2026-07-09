@@ -1,0 +1,17 @@
+#!/bin/sh
+# trim-copy — flatten a tmux copy-mode selection back into a single clean line before
+# it reaches the clipboard; the tmux `Y` binding pipes this to pbcopy.
+#
+# Problem it solves: a long command (e.g. `claude --resume <uuid>`) that soft-wraps in a
+# narrow pane gets a newline inserted at the wrap point when copied from copy-mode — and
+# in zsh history a stray `\` continuation shows up. Pasting then breaks mid-command
+# (runs before the uuid is complete). This rejoins the wrapped pieces into one line.
+#   - strips per-line trailing whitespace first (kills tmux's wrap-edge padding)
+#   - removes every newline AND an optional preceding `\` (wrap + \-continuation)
+#   - trims leading/trailing whitespace
+# NOTE: this collapses ALL newlines — it is meant for single-logical-line content
+# (commands, ids, urls). For multi-line code/text, use plain `y` (byte-exact).
+#
+# Lives here (not inline in .tmux.conf) because a regex full of \n \A \z inside a tmux
+# double-quoted string gets a backslash layer eaten by the config parser.
+exec perl -0pe 's/[ \t]+$//mg; s/\\?\n//g; s/\A\s+//; s/\s+\z//'

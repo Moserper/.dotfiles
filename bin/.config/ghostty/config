@@ -26,6 +26,9 @@ keybind = ctrl+enter=ignore
 keybind = ctrl+shift+h=scroll_to_top
 keybind = cmd+c=copy_to_clipboard
 keybind = cmd+v=paste_from_clipboard
+# ⌘O → send Ctrl-O (0x0f) so the ⌘J fleet switcher (fzf) can bind it to copy
+# the window name. Ctrl-O is unbound in fzf/zsh, so the global mapping is benign.
+keybind = cmd+o=text:\x0f
 keybind = ctrl+g=ignore
 keybind = ctrl+shift+l=ignore
 keybind = ctrl+shift+h=ignore

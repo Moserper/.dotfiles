@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # alias c='surf .'
-alias c='agy .'
+# alias c='agy .'
+alias c='zed .'
 alias godev='cd ~/Desktop/dev'
 alias air='$(go env GOPATH)/bin/air'
 

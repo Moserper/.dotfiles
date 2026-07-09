@@ -39,6 +39,14 @@
     open \"https://bitbucket.org/$repo_path/pull-requests/new\"; \
   }; f"
 	unreach-apply = "!git fsck --unreachable 2>/dev/null | awk \"/commit/ {print \\$3}\" | xargs -n1 -I{} git show -s --format=\"%H %ct %ad %s\" -- {} | sort -k2,2nr | awk \"{\\$2=\\\"\\\"; print}\" | fzf --ansi --multi --prompt=\"unreachable> \" --with-nth=3.. --preview \"git show --color=always --stat --patch -- {1}\" --bind \"enter:execute-silent(bash -c \\\"\n            for c in {+1}; do\n              msg=\\\\\\\"from-unreachable-\\$c\\\\\\\"\n              git show --pretty=format: --patch -- \\\\\\\"\\$c\\\\\\\" | git apply -3 || echo \\\\\\\"skip \\$c\\\\\\\"\n              git stash push -u -m \\\\\\\"\\$msg\\\\\\\" >/dev/null\n              git stash apply stash@{0}\n            done\n        \\\")\""
+	search-stash = "!git fsck --dangling 2>/dev/null | \
+		awk '/commit/ {print $3}' | \
+		xargs -r git log --no-walk --format=\"%C(yellow)%h%Creset - %C(cyan)%cr%Creset | %s\" | \
+		fzf --ansi --layout=reverse --border --multi \
+		--header=\"[TAB]: เลือกหลายตัว | [Ctrl-A]: Apply | [Ctrl-S]: Restore (Store)\" \
+		--preview=\"git show --color=always --stat -p {1}\" \
+		--bind=\"ctrl-a:execute(bash -c \\\"for c in {+1}; do git stash apply \\$c && echo '✅ Applied \\$c'; done\\\")+abort\" \
+		--bind=\"ctrl-s:execute(bash -c \\\"for c in {+1}; do git stash store -m 'Recovered: \\$c' \\$c && echo '💾 Stored \\$c'; done\\\")+abort\""
 [pull]
 	ff = true
 [fetch]
@@ -47,7 +55,7 @@
 	autoSetupRemote = true
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+	path = 
 [includeIf "gitdir:~/"]
     path = ~/.gitconfig-personal
 [includeIf "gitdir:~/w/"]

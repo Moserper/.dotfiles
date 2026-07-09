@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# tmux-switch — fuzzy-jump to any live tmux window/session (fleet switcher).
+# Pure tmux + fzf, no external state; previews the target's active-pane screen,
+# switches the client to the chosen one.
+# Bound in tmux.conf:  bind j display-popup -E "~/.local/scripts/tmux-switch"
+#
+# TWO VIEW MODES, cycled with tab (state lives in the fzf prompt, e.g.
+# "switch [session] ❯", read back via $FZF_PROMPT in the transform binding):
+#   win      one row per session:window   WHERE  WINDOW-NAME  APP  AGE
+#   session  one row per session          SESSION  attached?  APP  AGE  Nwin   (default)
+# The hidden field-1 of every row is a representative ACTIVE pane id — so the final
+# select-window/select-pane/switch-client path lands exactly there, and ctrl-x can
+# `kill-window -t {1}` (a pane id resolves to its window) or `kill-session -t {1}`
+# (the same pane id also resolves to its session — verified).
+#   tab    : cycle view  win <-> session   (mode is parsed back out of the prompt)
+#   ctrl-x : kill the highlighted target, then reload — WINDOW in win view,
+#            whole SESSION in session view (branches on the mode parsed from the prompt)
+#   ctrl-w : toggle preview wrap
+#   ctrl-o : copy the highlighted target's "<session>:<window-name>" to the
+#            clipboard (pbcopy) — fully qualified so it stays valid to paste into
+#            maw / tmux -t even after window indices shift.
+#            Bound to ⌘O via Ghostty (keybind = cmd+o=text:\x0f → sends Ctrl-O).
+#            Resolves both fields from {1} (active pane id), so it works in both views.
+set -euo pipefail
+
+[ -n "${TMUX:-}" ] || { echo "tmux-switch: run inside tmux" >&2; exit 1; }
+
+# absolute path to self — fzf reload/transform bindings re-invoke us as
+# `tmux-switch __rows <mode>` to regenerate the list for the new view.
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+
+# emit_rows <mode> -> final fzf input: "<active_pane_id>\t<display>", claude first.
+emit_rows() {
+  local mode="$1" now
+  now=$(date +%s)
+  # sticky column-header row (--header-lines=1). Empty field-1 so --with-nth='2..'
+  # strips it just like the data rows, keeping the labels column-aligned.
+  case "$mode" in
+    session) printf '\t%-22s %-12s %-8s %-5s %-5s %s\n' SESSION ATTACHED APP AGE WIN FLAG ;;
+    *)       printf '\t%-22s %-18s %-8s %-5s %s\n'       WHERE WINDOW-NAME APP AGE FLAG ;;
+  esac
+  tmux list-panes -a -F \
+    '#{pane_id}	#{session_name}	#{window_index}	#{pane_current_command}	#{window_activity}	#{pane_title}	#{host}	#{pane_active}	#{window_active}	#{window_name}	#{session_attached}	#{@cc_wait}	#{@cc_done}' \
+  | awk -F'\t' -v now="$now" -v mode="$mode" '
+      function age(t,  d){ if(t==""||t+0==0)return "-"; d=now-t; if(d<0)d=0;
+        return d<60? d"s" : (d<3600? int(d/60)"m" : (d<86400? int(d/3600)"h" : int(d/86400)"d")) }
+      {
+        pid=$1; sess=$2; widx=$3; app=$4; wact=$5; title=$6; host=$7
+        pa=$8; wa=$9; wname=$10; satt=$11; cw=$12; cd=$13
+        if (app ~ /^[0-9]+\.[0-9]+/) app="claude"
+        if (title==host || title=="") title="-"
+        # @cc_wait/@cc_done are window options carrying " ❓"/" 🤖" (leading space);
+        # treat any non-blank value as "set".
+        waitf=(cw ~ /[^[:space:]]/)?1:0; donef=(cd ~ /[^[:space:]]/)?1:0
+
+        if (mode=="session") {
+          k=sess
+          if (!(k in sorder)) { sorder[k]=++sn; sseq[sn]=k }
+          wk=sess SUBSEP widx
+          if (!(wk in swseen)) { swseen[wk]=1; swin[k]++ }
+          if (wact+0 > sact[k]+0) sact[k]=wact
+          satt_[k]=satt
+          if (waitf) swait[k]=1; if (donef) sdone[k]=1
+          if ((wa==1 && pa==1) || !(k in spid)) { spid[k]=pid; sapp[k]=app }
+        }
+        else { # win
+          k=sess SUBSEP widx
+          if (!(k in worder)) { worder[k]=++wn; wseq[wn]=k }
+          wact_[k]=wact; wsess[k]=sess; wwidx[k]=widx
+          if (waitf) wwait[k]=1; if (donef) wdone[k]=1
+          if (pa==1 || !(k in wpid)) { wpid[k]=pid; wapp[k]=app
+            wnm[k]=(wname!=""?wname:title) }
+        }
+      }
+      END {
+        if (mode=="session") {
+          for (i=1;i<=sn;i++){ k=sseq[i]
+            # attention floats to top: waiting(❓) > done(🤖) > none; claude-first within.
+            atn=swait[k]?0:(sdone[k]?1:2); pri=atn*2+((sapp[k]=="claude")?0:1)
+            mark=swait[k]?"❓":(sdone[k]?"🤖":"-")
+            # BSD awk pads %-Ns by BYTES; "● attached" is 12 bytes but 10 columns
+            # wide, so pad the ATTACHED field to 12 *visual* cols by hand.
+            if (satt_[k]+0>0) { att="● attached"; aw=10 } else { att="-"; aw=1 }
+            printf "%d\t%s\t%-22s %s%*s %-8s %-5s %-5s %s\n", \
+              pri, spid[k], k, att, 12-aw, "", sapp[k], age(sact[k]), (swin[k]"win"), mark }
+        } else {
+          for (i=1;i<=wn;i++){ k=wseq[i]
+            atn=wwait[k]?0:(wdone[k]?1:2); pri=atn*2+((wapp[k]=="claude")?0:1)
+            mark=wwait[k]?"❓":(wdone[k]?"🤖":"-")
+            printf "%d\t%s\t%-22s %-18s %-8s %-5s %s\n", \
+              pri, wpid[k], wsess[k]":"wwidx[k], wnm[k], wapp[k], age(wact_[k]), mark }
+        }
+      }' \
+  | sort -s -t'	' -k1,1n | cut -f2-
+}
+
+# fzf reload/transform callback: print rows for a given mode and exit.
+if [ "${1:-}" = "__rows" ]; then
+  emit_rows "${2:-win}"
+  exit 0
+fi
+
+command -v fzf >/dev/null 2>&1 || { echo "tmux-switch: needs fzf (brew install fzf)" >&2; exit 1; }
+
+rows=$(emit_rows session)
+[ -n "$rows" ] || { echo "no live windows"; exit 0; }
+
+# field 1 (active pane id) is the action target, hidden from view; field 2.. shown.
+# preview is the highlighted target's active-pane live screen.
+sel=$(printf '%s\n' "$rows" | fzf --no-sort \
+        --delimiter=$'\t' --with-nth='2..' --header-lines=1 \
+        --prompt='switch [session] ❯ ' \
+        --header='tab view: win↔session · ⌘O copy session:window-name · ctrl-x kill (win view→window, session view→session) · ctrl-w wrap' \
+        --preview='tmux capture-pane -ep -t {1} | sed "/^[[:space:]]*$/d" | tail -n "${FZF_PREVIEW_LINES:-40}"' \
+        --preview-window='right,60%,nowrap' \
+        --bind='ctrl-w:toggle-preview-wrap' \
+        --bind='ctrl-o:execute-silent(name=$(tmux display-message -p -t {1} "#{session_name}:#{window_name}"); printf %s "$name" | pbcopy; tmux display-message "copied: $name")' \
+        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); case \"\$cur\" in win) n=session;; *) n=win;; esac; printf 'change-prompt(switch [%s] ❯ )+reload($SELF __rows %s)' \"\$n\" \"\$n\"" \
+        --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-win}") || exit 0
+[ -n "$sel" ] || exit 0
+
+pane=$(printf '%s' "$sel" | cut -f1)
+[ -n "$pane" ] || exit 0
+
+# select the window/pane first, then attach the client to its session — so the
+# client lands on exactly the chosen target. Works from inside display-popup (-E).
+sess=$(tmux display-message -p -t "$pane" '#{session_name}' 2>/dev/null) || exit 0
+[ -n "$sess" ] || exit 0
+tmux select-window -t "$pane" 2>/dev/null || true
+tmux select-pane   -t "$pane" 2>/dev/null || true
+tmux switch-client -t "$sess" 2>/dev/null || true

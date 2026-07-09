@@ -176,8 +176,8 @@
         ;; {:des "ctrl + delete to delete word"
         ;;  :rules [[:!T##delete_or_backspace :!O##delete_or_backspace]]}
 
-        ;; {:des "cmd + delete to delete word"
-        ;;  :rules [[:!C##delete_or_backspace :delete_forward]]}
+        {:des "cmd + delete to delete word"
+         :rules [[:!C##delete_or_backspace :delete_forward]]}
 
         {:des "Caps Lock + Left Command -> Hyper"
          :rules [[:!C##caps_lock :!CTOleft_shift]]}
@@ -207,6 +207,9 @@
         {:des "Open TablePlus"
          :rules [[:!!o ["open /Applications/TablePlus.app"]]]}
 
+        {:des "Open Dictionary"
+         :rules [[:!!w ["open -a Dictionary.app"]]]}
+
         ;; {:des "Open Codex"
         ;;  :rules [[:!!h ["open /Applications/Claude.app"]]]}
 
@@ -225,14 +228,17 @@
         ;; {:des "Open Windsurf"
         ;;  :rules [[:!!k ["open /Applications/Windsurf.app"]]]}
 
-        {:des "Open Antigravity"
-         :rules [[:!!k ["open /Applications/Antigravity.app"]]]}
+        ;; {:des "Open Antigravity"
+        ;;  :rules [[:!!k ["open /Applications/Antigravity.app"]]]}
 
         ;; {:des "Open Cursor"
         ;;  :rules [[:!!k [:open "/Applications/Cursor.app"]]]}
 
         ;; {:des "Open VS Code"
         ;;  :rules [[:!!k [:open "/Applications/Visual Studio Code.app"]]]}
+
+        {:des "Open Zed"
+         :rules [[:!!k [:open "/Applications/Zed.app"]]]}
 
         {:des "Open WezTerm"
          :rules [[:!!l ["open /Applications/WezTerm.app"]]]}
@@ -253,10 +259,15 @@
                  [:!CSl :right_arrow]
                  ;; prev char
                  [:!CSh :left_arrow]
-                 ;; move tmux next
-                 [:!CSclose_bracket [:grave_accent_and_tilde :n]]
-                 ;; move tmux prev
-                 [:!CSopen_bracket [:grave_accent_and_tilde :p]]
+                 ;; move tmux next — shell_command (not key_code) so it is layout-immune:
+                 ;; key_code output re-maps through the active layout (Thai ` → -, p → ย),
+                 ;; a shell_command drives tmux directly regardless of layout.
+                 [:!CSclose_bracket "/opt/homebrew/bin/tmux next-window"]
+                 ;; move tmux prev — see note above re: layout-immune shell_command
+                 [:!CSopen_bracket "/opt/homebrew/bin/tmux previous-window"]
+                 ;; move tmux window to last position — shell_command (layout-immune,
+                 ;; see note above). Mirrors the prefix+} binding in .tmux.conf.
+                 [:!CSp "cur=$(/opt/homebrew/bin/tmux display -p '#I'); /opt/homebrew/bin/tmux move-window -t 9999; /opt/homebrew/bin/tmux move-window -r; /opt/homebrew/bin/tmux select-window -t :$cur"]
                  ;;  search
                  [:!Tslash [:escape :close_bracket]]]}
 
@@ -281,8 +292,11 @@
         {:des "Open Slack"
          :rules [[:!!s ["open /Applications/Slack.app"]]]}
 
-        {:des "Open Postman"
-         :rules [[:!!p ["open /Applications/Postman.app"]]]}
+        ;; {:des "Open Postman"
+        ;;  :rules [[:!!p ["open /Applications/Postman.app"]]]}
+
+        {:des "Open Bruno"
+         :rules [[:!!p ["open /Applications/Bruno.app"]]]}
 
         {:des "Open Spotify"
          :rules [[:!!m [:open "/Applications/Spotify.app"]]]}
