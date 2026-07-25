@@ -6,13 +6,17 @@
 #
 # TWO VIEW MODES, cycled with tab (state lives in the fzf prompt, e.g.
 # "switch [session] ❯", read back via $FZF_PROMPT in the transform binding):
-#   win      one row per session:window   WHERE  WINDOW-NAME  APP  AGE
-#   session  one row per session          SESSION  attached?  APP  AGE  Nwin   (default)
+#   session       one row per session   SESSION attached? APP AGE Nwin   (default)
+#   win:<session> one row per window of THAT session   WHERE WINDOW-NAME APP AGE
+# Tab drills DOWN: from session view it opens the highlighted session's windows
+# (scope = "[win:<sess>]" in the prompt); Tab again pops back to session view.
 # The hidden field-1 of every row is a representative ACTIVE pane id — so the final
 # select-window/select-pane/switch-client path lands exactly there, and ctrl-x can
 # `kill-window -t {1}` (a pane id resolves to its window) or `kill-session -t {1}`
 # (the same pane id also resolves to its session — verified).
-#   tab    : cycle view  win <-> session   (mode is parsed back out of the prompt)
+#   tab    : drill into highlighted session <-> back to session list
+#            (scope is parsed back out of the prompt; the highlighted session is
+#             resolved from {1} via tmux display-message, like ctrl-o)
 #   ctrl-x : kill the highlighted target, then reload — WINDOW in win view,
 #            whole SESSION in session view (branches on the mode parsed from the prompt)
 #   ctrl-w : toggle preview wrap
@@ -21,6 +25,13 @@
 #            maw / tmux -t even after window indices shift.
 #            Bound to ⌘O via Ghostty (keybind = cmd+o=text:\x0f → sends Ctrl-O).
 #            Resolves both fields from {1} (active pane id), so it works in both views.
+#   j/k    : move down/up. Under the Thai (Kedmanee) input source these physical
+#            keys send ่ (mai ek) / า (sara aa) instead of ASCII j/k, so both chars
+#            are also bound to down/up (and unbound/rebound alongside j,k on the
+#            ctrl-s search toggle). Arrow keys and Ctrl-j/Ctrl-k work regardless of
+#            layout (fzf defaults, not remapped by any keyboard layout) — the
+#            fallback if a bind ever mismatches a layout. See ~/.config/wezterm/keys.lua
+#            phys:J comment for the same Thai-layout-eats-the-key root cause.
 set -euo pipefail
 
 [ -n "${TMUX:-}" ] || { echo "tmux-switch: run inside tmux" >&2; exit 1; }
@@ -29,9 +40,11 @@ set -euo pipefail
 # `tmux-switch __rows <mode>` to regenerate the list for the new view.
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
-# emit_rows <mode> -> final fzf input: "<active_pane_id>\t<display>", claude first.
+# emit_rows <mode> [session_filter] -> final fzf input: "<pane_id>\t<display>".
+# session mode: rows sorted by session id (numeric). win mode: rows sorted by window
+# index (numeric); session_filter (if set) restricts rows to that session.
 emit_rows() {
-  local mode="$1" now
+  local mode="$1" filt="${2:-}" now
   now=$(date +%s)
   # sticky column-header row (--header-lines=1). Empty field-1 so --with-nth='2..'
   # strips it just like the data rows, keeping the labels column-aligned.
@@ -40,13 +53,15 @@ emit_rows() {
     *)       printf '\t%-22s %-18s %-8s %-5s %s\n'       WHERE WINDOW-NAME APP AGE FLAG ;;
   esac
   tmux list-panes -a -F \
-    '#{pane_id}	#{session_name}	#{window_index}	#{pane_current_command}	#{window_activity}	#{pane_title}	#{host}	#{pane_active}	#{window_active}	#{window_name}	#{session_attached}	#{@cc_wait}	#{@cc_done}' \
-  | awk -F'\t' -v now="$now" -v mode="$mode" '
+    '#{pane_id}	#{session_name}	#{window_index}	#{pane_current_command}	#{window_activity}	#{pane_title}	#{host}	#{pane_active}	#{window_active}	#{window_name}	#{session_attached}	#{@cc_wait}	#{@cc_done}	#{session_id}' \
+  | awk -F'\t' -v now="$now" -v mode="$mode" -v filt="$filt" '
       function age(t,  d){ if(t==""||t+0==0)return "-"; d=now-t; if(d<0)d=0;
         return d<60? d"s" : (d<3600? int(d/60)"m" : (d<86400? int(d/3600)"h" : int(d/86400)"d")) }
       {
+        # win view is always scoped to one session: skip panes from other sessions.
+        if (mode=="win" && filt!="" && $2!=filt) next
         pid=$1; sess=$2; widx=$3; app=$4; wact=$5; title=$6; host=$7
-        pa=$8; wa=$9; wname=$10; satt=$11; cw=$12; cd=$13
+        pa=$8; wa=$9; wname=$10; satt=$11; cw=$12; cd=$13; sid=$14; sub(/\$/,"",sid)
         if (app ~ /^[0-9]+\.[0-9]+/) app="claude"
         if (title==host || title=="") title="-"
         # @cc_wait/@cc_done are window options carrying " ❓"/" 🤖" (leading space);
@@ -59,7 +74,7 @@ emit_rows() {
           wk=sess SUBSEP widx
           if (!(wk in swseen)) { swseen[wk]=1; swin[k]++ }
           if (wact+0 > sact[k]+0) sact[k]=wact
-          satt_[k]=satt
+          satt_[k]=satt; ssid[k]=sid
           if (waitf) swait[k]=1; if (donef) sdone[k]=1
           if ((wa==1 && pa==1) || !(k in spid)) { spid[k]=pid; sapp[k]=app }
         }
@@ -75,48 +90,70 @@ emit_rows() {
       END {
         if (mode=="session") {
           for (i=1;i<=sn;i++){ k=sseq[i]
-            # attention floats to top: waiting(❓) > done(🤖) > none; claude-first within.
+            # session view sorts by session id (numeric, ascending) — see the ssid[k]
+            # sort-key in the printf below. The ❓/🤖 flag is still shown in the FLAG
+            # column but no longer floats the row to the top (pri kept only for win view).
             atn=swait[k]?0:(sdone[k]?1:2); pri=atn*2+((sapp[k]=="claude")?0:1)
             mark=swait[k]?"❓":(sdone[k]?"🤖":"-")
             # BSD awk pads %-Ns by BYTES; "● attached" is 12 bytes but 10 columns
             # wide, so pad the ATTACHED field to 12 *visual* cols by hand.
             if (satt_[k]+0>0) { att="● attached"; aw=10 } else { att="-"; aw=1 }
             printf "%d\t%s\t%-22s %s%*s %-8s %-5s %-5s %s\n", \
-              pri, spid[k], k, att, 12-aw, "", sapp[k], age(sact[k]), (swin[k]"win"), mark }
+              ssid[k], spid[k], k, att, 12-aw, "", sapp[k], age(sact[k]), (swin[k]"win"), mark }
         } else {
           for (i=1;i<=wn;i++){ k=wseq[i]
+            # win view sorts by window index (numeric, ascending). The ❓/🤖 flag is
+            # still shown in the FLAG column but no longer floats the row to the top.
             atn=wwait[k]?0:(wdone[k]?1:2); pri=atn*2+((wapp[k]=="claude")?0:1)
             mark=wwait[k]?"❓":(wdone[k]?"🤖":"-")
             printf "%d\t%s\t%-22s %-18s %-8s %-5s %s\n", \
-              pri, wpid[k], wsess[k]":"wwidx[k], wnm[k], wapp[k], age(wact_[k]), mark }
+              wwidx[k], wpid[k], wsess[k]":"wwidx[k], wnm[k], wapp[k], age(wact_[k]), mark }
         }
       }' \
   | sort -s -t'	' -k1,1n | cut -f2-
 }
 
-# fzf reload/transform callback: print rows for a given mode and exit.
+# fzf reload/transform callback: print rows for a given view spec and exit.
+# spec is "session" or "win:<session>" (the bracket text parsed out of the prompt).
 if [ "${1:-}" = "__rows" ]; then
-  emit_rows "${2:-win}"
+  spec="${2:-session}"
+  case "$spec" in
+    win:*) emit_rows win "${spec#win:}" ;;
+    *)     emit_rows "$spec" ;;
+  esac
   exit 0
 fi
 
 command -v fzf >/dev/null 2>&1 || { echo "tmux-switch: needs fzf (brew install fzf)" >&2; exit 1; }
+
+# Disable software flow control on THIS popup's pty so Ctrl-s (0x13 = XOFF) reaches fzf
+# as a bindable key instead of freezing terminal output. fzf sets raw mode itself, but a
+# transform's child shell restores cooked mode (re-enabling IXON) — so the *second* Ctrl-s
+# would otherwise hit a flow-control-armed tty and hang. display-popup -E gives us an
+# isolated pty, so this never leaks to the parent terminal. Best-effort; never fatal.
+# MUST stay below the __rows early-exit: reload/transform re-invoke us as `__rows <mode>`,
+# and running this stty (reading /dev/tty) in that child stalls against fzf's tty → the
+# reload never returns rows (Tab appears dead). Only the interactive launch needs it.
+stty -ixon </dev/tty >/dev/null 2>&1 || true
 
 rows=$(emit_rows session)
 [ -n "$rows" ] || { echo "no live windows"; exit 0; }
 
 # field 1 (active pane id) is the action target, hidden from view; field 2.. shown.
 # preview is the highlighted target's active-pane live screen.
-sel=$(printf '%s\n' "$rows" | fzf --no-sort \
+sel=$(printf '%s\n' "$rows" | fzf --no-sort --no-input \
         --delimiter=$'\t' --with-nth='2..' --header-lines=1 \
         --prompt='switch [session] ❯ ' \
-        --header='tab view: win↔session · ⌘O copy session:window-name · ctrl-x kill (win view→window, session view→session) · ctrl-w wrap' \
+        --header='view: sessions · Tab drill into session · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill session · Enter switch · esc quit' \
         --preview='tmux capture-pane -ep -t {1} | sed "/^[[:space:]]*$/d" | tail -n "${FZF_PREVIEW_LINES:-40}"' \
         --preview-window='right,60%,nowrap' \
         --bind='ctrl-w:toggle-preview-wrap' \
+        --bind='j:down' --bind='k:up' \
+        --bind='่:down' --bind='า:up' \
+        --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า)+hide-input'; else echo 'show-input+unbind(j,k,่,า)+pos(1)'; fi" \
         --bind='ctrl-o:execute-silent(name=$(tmux display-message -p -t {1} "#{session_name}:#{window_name}"); printf %s "$name" | pbcopy; tmux display-message "copied: $name")' \
-        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); case \"\$cur\" in win) n=session;; *) n=win;; esac; printf 'change-prompt(switch [%s] ❯ )+reload($SELF __rows %s)' \"\$n\" \"\$n\"" \
-        --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-win}") || exit 0
+        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); printf 'change-prompt(switch [win:%s] ❯ )+change-header(view: %s windows · Tab back to sessions · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill window · Enter switch · esc quit)+reload($SELF __rows win:%s)' \"\$s\" \"\$s\" \"\$s\"; else printf 'change-prompt(switch [session] ❯ )+change-header(view: sessions · Tab drill into session · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill session · Enter switch · esc quit)+reload($SELF __rows session)'; fi" \
+        --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-session}") || exit 0
 [ -n "$sel" ] || exit 0
 
 pane=$(printf '%s' "$sel" | cut -f1)
