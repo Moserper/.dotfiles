@@ -19,6 +19,28 @@ return {
   { key = 'LeftArrow', mods = 'OPT', action = act.SendKey { key = 'LeftArrow', mods = 'ALT' } },
   { key = 'RightArrow', mods = 'OPT', action = act.SendKey { key = 'RightArrow', mods = 'ALT' } },
 
+  -- ⌥` → type a LITERAL backtick. A bare ` can't do this: tmux's prefix is `, and
+  -- `bind-key ` last-window` means pressing it twice switches windows, not emits `.
+  -- tmux's escape hatch is `bind-key e send-prefix`, so inside tmux we send prefix (`)
+  -- then `e` to emit one real backtick. Outside tmux, just send ` directly.
+  -- phys:Grave matches by physical position so it still fires under the Thai layout
+  -- (see the phys:J note below re: WezTerm stripping modifiers off cooked Thai events).
+  {
+    key = 'phys:Grave',
+    mods = 'OPT',
+    action = wezterm.action_callback(function(win, pane)
+      local proc = pane:get_foreground_process_name() or ''
+      if proc:match 'tmux' then
+        win:perform_action(act.Multiple {
+          act.SendKey { key = '`' }, -- tmux prefix
+          act.SendKey { key = 'e' }, -- bind-key e send-prefix → literal `
+        }, pane)
+      else
+        win:perform_action(act.SendKey { key = '`' }, pane)
+      end
+    end),
+  },
+
   {
     key = 'Enter',
     mods = 'SHIFT',
@@ -116,6 +138,26 @@ return {
         -- absolute path: WezTerm spawns directly (not via login shell), so its PATH lacks
         -- /opt/homebrew/bin. The tmux popup works because it inherits the server's env.
         win:perform_action(act.SpawnCommandInNewTab { args = { '/opt/homebrew/bin/lazygit' }, cwd = cwd }, pane)
+      end
+    end),
+  },
+
+  -- ⌘E → open the editor at the CURRENT pane's path. tmux can't see Cmd, so forward
+  -- prefix+C-e (prefix = backtick) → tmux `bind C-e` run-shell → the zsh alias `c`.
+  -- NB the forwarded key is C-e, NOT e: tmux's `bind e` is send-prefix (the literal-backtick
+  -- hatch, see the ⌥` binding above), so `e` is already taken — only the Mac accelerator is
+  -- on ⌘E, and it needn't match the internal key (same trick as ⌘R → prefix+k).
+  -- Guarded to tmux only, like ⌘J/⌘R: outside tmux, ⌘E is swallowed (no stray "`" typed).
+  {
+    key = 'phys:E', -- physical key (see phys:J note above re: Thai layout). ONE entry is
+    mods = 'CMD',   -- enough, unlike ⌘R: WezTerm has no built-in SUPER-e to shadow phys:E.
+    action = wezterm.action_callback(function(win, pane)
+      local proc = pane:get_foreground_process_name() or ''
+      if proc:match 'tmux' then
+        win:perform_action(act.Multiple {
+          act.SendKey { key = '`' }, -- tmux prefix
+          act.SendKey { key = 'e', mods = 'CTRL' }, -- tmux `bind C-e` → run-shell → editor
+        }, pane)
       end
     end),
   },
