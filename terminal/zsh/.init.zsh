@@ -39,4 +39,11 @@ _make_targets() {
     fi
 }
 
-compdef _make_targets make
+# `_skills_make` (completions/_skills_make) adds VENDOR=<name> completion inside
+# ~/m/skills and delegates back to _make_targets everywhere else. Registered
+# explicitly here because .init.zsh is sourced after compinit, so an explicit
+# compdef beats the file's own #compdef tag.
+# The explicit `autoload` is required: .zshrc prepends the completions dir to
+# fpath *after* compinit runs, so compinit never marked the file autoloadable.
+autoload -Uz _skills_make
+compdef _skills_make make

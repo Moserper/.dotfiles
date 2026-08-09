@@ -131,6 +131,10 @@
 autoload -Uz compinit
 compinit -u
 typeset -U fpath
+# NOTE: fpath is prepended AFTER compinit, so compinit never scans this dir for
+# `#compdef` tags. A new completions/_foo file therefore needs an explicit
+# `autoload -Uz _foo` (see terminal/zsh/.init.zsh) — without it `$_comps[cmd]`
+# looks correctly bound but tabbing fails with "command not found: _foo".
 fpath=(~/.dotfiles/terminal/zsh/completions $fpath)
 
 # ssh-add -A 2>/dev/null
@@ -169,4 +173,48 @@ export PATH="$HOME/.local/scripts:$PATH"
 
 # Added by Antigravity IDE
 export PATH="/Users/pathomporn.s/.antigravity-ide/antigravity-ide/bin:$PATH"
-export PATH="$HOME/.claude/bin:$PATH"   # maw (agent-os)
+# agent-os tooling (~/.agent-shared/bin + ~/.claude/bin) moved to .zshenv on
+# 2026-08-09 — agents invoke `maw`/`memory-index-gen` from non-interactive tool
+# shells, which never source this file. See ~/.dotfiles/zsh/.zshenv.
+
+# Keep `maw wake …` out of shell history (2026-07-30). A wake line is a one-shot spawn
+# carrying a long task prompt: it crowds out ↑-search and is never worth re-running
+# verbatim (the worker it spawned already exists). Full grounding, with man-page and
+# zsh-5.9 source citations: ~/m/agent-os/docs/zsh-history-research-2026-07-30.md
+#
+# BOTH mechanisms on purpose — they cover different halves, neither is redundant:
+#   * the hook keeps the line out of THIS shell's in-memory ring (↑ / Ctrl-R / fzf).
+#     Returning non-zero (1, not 2) is what keeps it off disk as well; return 2 is
+#     internal-only and a bare `fc -W` writes those entries out anyway.
+#     Note `fc -l` cannot verify this: a hook-suppressed entry is in the ring but not in
+#     the histtab hash, so `fc -l` omits it while ↑ still recalls it for one more
+#     command. Verify with a real ↑, or by searching the history file.
+#   * HISTORY_IGNORE is the belt to that braces: it is applied on EVERY write this shell
+#     makes, so it still strips the line if the hook's pattern ever fails to fire, and
+#     the periodic trim-rewrite (at SAVEHIST + 20%) drops previously-recorded matches
+#     from the file. It is NOT enough alone — being write-time only, the line stays in
+#     the ring permanently and ↑ keeps finding it. It also only covers shells that have
+#     it set, which is the same set that has the hook, so it buys robustness, not reach.
+#
+# History options live in terminal/zsh/.history.zsh, and they matter here: this setup is
+# INC_APPEND_HISTORY + NO_SHARE_HISTORY + NO_EXTENDED_HISTORY. So lines hit the file as
+# they are typed, but no shell re-reads the file mid-session — a pane started before
+# this hook existed keeps appending `maw wake` lines, and they reach you in the NEXT
+# pane you open, not in a running one. Reload every pane (`exec zsh`) after changing
+# this. NO_EXTENDED_HISTORY also means the file is plain lines, not `: <ts>:<n>;<cmd>`.
+#
+# Pattern must stay newline-tolerant. The hook's $1 keeps the line's terminating
+# newline while HISTORY_IGNORE is matched against the stripped text, so a pattern
+# ending in `*` works in both places — an anchored one (`maw wake`) would filter the
+# file yet silently never fire the hook. Also whole-line anchored: `maw wake*` does not
+# match a line with that text in the middle. To widen to every maw command: `maw *`.
+#
+# `emulate -L zsh` per the manual's own example — pins glob flavour inside the hook so
+# a global setopt can't change what the pattern means.
+HISTORY_IGNORE='maw wake*'
+autoload -Uz add-zsh-hook
+_zsh_skip_maw_wake_history() {
+  emulate -L zsh
+  [[ $1 != ${~HISTORY_IGNORE} ]]
+}
+add-zsh-hook zshaddhistory _zsh_skip_maw_wake_history

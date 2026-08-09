@@ -1,0 +1,114 @@
+#compdef make
+# zsh completion for `make` inside the personal skills repo (~/m/skills).
+#
+# Scope-limited on purpose: if the cwd doesn't look like that repo we hand the
+# whole completion back to the generic `_make_targets` (defined in
+# terminal/zsh/.init.zsh), so `make` behaves normally everywhere else.
+#
+# The file is NOT named `_make` on purpose — shadowing the system function
+# would make the fallback chain unreachable. Registration happens via the
+# explicit `compdef _skills_make make` in .init.zsh, which is sourced after
+# compinit and therefore wins over any #compdef tag.
+
+# --- helpers ---
+
+# Vendor names = directory names under ./vendor/ (N = no-match-is-empty, :t = tail)
+_skills_make_vendors() {
+  print -l -- $PWD/vendor/*(/N:t)
+}
+
+# Targets + their `## ` help text, read straight out of the Makefile so this
+# never drifts when a target is added.
+_skills_make_targets() {
+  awk -F':.*?## ' '/^[a-zA-Z_-]+:.*?## / {print $1 ":" $2}' "$PWD/Makefile" 2>/dev/null
+}
+
+# --- end helpers ---
+
+_skills_make() {
+  # Not the skills repo → generic make completion.
+  if [[ ! -d $PWD/vendor || ! -f $PWD/scripts/vendor-remove.sh || ! -f $PWD/Makefile ]]; then
+    if (( $+functions[_make_targets] )); then
+      _make_targets "$@"
+    else
+      _make "$@"
+    fi
+    return
+  fi
+
+  local -a targets vendors
+  local cur target w
+
+  cur=${words[CURRENT]}
+
+  # Which target is already on the line? (skip argv[0] and VAR=value words)
+  for w in ${words[2,-1]}; do
+    [[ $w == $cur ]] && continue
+    [[ $w == *=* ]] && continue
+    [[ -n $w ]] && target=$w && break
+  done
+
+  # --- VENDOR=<TAB> ---
+  if [[ $cur == VENDOR=* ]]; then
+    compset -P 'VENDOR='
+
+    # `add` creates a NEW vendor — completing existing names would be wrong.
+    if [[ $target == add ]]; then
+      _message 'new vendor name'
+      return
+    fi
+
+    vendors=(${(f)"$(_skills_make_vendors)"})
+
+    # Only vendor-update.sh understands --all; vendor-check.sh / vendor-inspect.sh
+    # take any argument as a literal vendor name, so don't offer it there.
+    [[ $target == update ]] && vendors=('--all:every vendor' $vendors)
+
+    if (( $#vendors )); then
+      _describe -t vendors 'vendor' vendors
+    else
+      _message 'no vendors under ./vendor/'
+    fi
+    return
+  fi
+
+  # --- URL=<TAB> ---
+  if [[ $cur == URL=* ]]; then
+    compset -P 'URL='
+    _message 'git url'
+    return
+  fi
+
+  # --- no target yet → offer targets ---
+  if [[ -z $target ]]; then
+    targets=(${(f)"$(_skills_make_targets)"})
+    (( $#targets )) && _describe -t targets 'target' targets
+    return
+  fi
+
+  # --- target chosen → offer the variables it accepts ---
+  case $target in
+    # VENDOR is REQUIRED here (the Makefile exits 2 without it), so offer only
+    # that — a lone match gets inserted straight away, which is the point.
+    add)
+      compadd -S '=' VENDOR URL
+      return
+      ;;
+    remove)
+      compadd -S '=' VENDOR
+      return
+      ;;
+    # VENDOR is optional here — offer it, then fall through to targets.
+    check|update|inspect)
+      compadd -S '=' VENDOR
+      ;;
+  esac
+
+  # Keep offering targets: `make validate link` is normal usage, so falling
+  # through avoids making chained targets worse than the generic completion
+  # this replaces.
+  targets=(${(f)"$(_skills_make_targets)"})
+  (( $#targets )) && _describe -t targets 'target' targets
+}
+
+_skills_make "$@"
