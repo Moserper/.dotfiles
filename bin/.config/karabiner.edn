@@ -265,9 +265,9 @@
                  [:!CSclose_bracket "/opt/homebrew/bin/tmux next-window"]
                  ;; move tmux prev — see note above re: layout-immune shell_command
                  [:!CSopen_bracket "/opt/homebrew/bin/tmux previous-window"]
-                 ;; move tmux window to last position — shell_command (layout-immune,
-                 ;; see note above). Mirrors the prefix+} binding in .tmux.conf.
-                 [:!CSp "cur=$(/opt/homebrew/bin/tmux display -p '#I'); /opt/homebrew/bin/tmux move-window -t 9999; /opt/homebrew/bin/tmux move-window -r; /opt/homebrew/bin/tmux select-window -t :$cur"]
+                 ;; renumber windows in place — close index gaps, keep order & focus
+                 ;; (shell_command, layout-immune; see note above). `-r` respects base-index.
+                 [:!CSp "/opt/homebrew/bin/tmux move-window -r"]
                  ;;  search
                  [:!Tslash [:escape :close_bracket]]]}
 
