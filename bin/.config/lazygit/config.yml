@@ -1,3 +1,5 @@
+os:
+  editPreset: 'zed'
 gui:
   authorColors:
     'Moserper': 'blue'
@@ -70,7 +72,7 @@ gui:
   showBottomLine: true
   showPanelJumps: true
   showIcons: false
-  nerdFontsVersion: ""
+  nerdFontsVersion: ''
   showFileIcons: true
   commitAuthorShortLength: 2
   commitAuthorLongLength: 17
@@ -98,7 +100,7 @@ gui:
 git:
   pagers:
     - name: plain
-      pager: ""
+      pager: ''
     - name: delta
       colorArg: always
       pager: delta --dark --paging=never --side-by-side
@@ -108,7 +110,7 @@ git:
     autoWrapWidth: 72
   merging:
     manualCommit: false
-    args: ""
+    args: ''
     squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
   mainBranches:
     - master
@@ -126,7 +128,7 @@ git:
   disableForcePushing: false
   commitPrefix: []
   commitPrefixes: {}
-  branchPrefix: ""
+  branchPrefix: ''
   parseEmoji: false
   log:
     order: topo-order
@@ -157,6 +159,11 @@ customCommands:
     description: 'Open tig'
     command: 'tig'
     output: terminal
+  - key: '<c-e>'
+    context: 'global'
+    description: 'Open repo in VS Code'
+    command: 'zed .'
+    output: none
   # - key: 'X'
   #   command: 'git fetch --prune'
   #   context: 'branches'
@@ -194,14 +201,14 @@ keybinding:
     nextBlock-alt2: <tab>
     prevBlock-alt2: <backtab>
     jumpToBlock:
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-      - "5"
-    focusMainView: "0"
-    nextMatch: "n"
-    prevMatch: "N"
+      - '1'
+      - '2'
+      - '3'
+      - '4'
+      - '5'
+    focusMainView: '0'
+    nextMatch: 'n'
+    prevMatch: 'N'
     startSearch: /
     optionMenu: <disabled>
     optionMenu-alt1: '?'
@@ -211,7 +218,7 @@ keybinding:
     confirmInEditor: <a-enter>
     confirmInEditor-alt: <c-s>
     remove: d
-    new: "n"
+    new: 'n'
     edit: e
     openFile: o
     scrollUpMain: <pgup>
@@ -266,7 +273,7 @@ keybinding:
     toggleTreeView: '`'
     openMergeOptions: M
     openStatusFilter: <c-b>
-    copyFileInfoToClipboard: "y"
+    copyFileInfoToClipboard: 'y'
     collapseAll: '-'
     expandAll: =
   branches:
@@ -278,7 +285,7 @@ keybinding:
     rebaseBranch: r
     renameBranch: R
     mergeIntoCurrentBranch: M
-    moveCommitsToNewBranch: "N"
+    moveCommitsToNewBranch: 'N'
     viewGitFlowOptions: i
     fastForward: f
     createTag: T
@@ -308,7 +315,7 @@ keybinding:
     tagCommit: T
     checkoutCommit: <space>
     resetCherryPick: <c-R>
-    copyCommitAttributeToClipboard: "y"
+    copyCommitAttributeToClipboard: 'y'
     openLogMenu: <c-l>
     openInBrowser: o
     viewBisectOptions: b
