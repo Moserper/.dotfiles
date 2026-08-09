@@ -7,13 +7,20 @@ local config = {}
 -- Register event handlers (status bar, etc.)
 status.register()
 
+
 -- Fonts
+
+-- 'DroidSansM Nerd Font'
+-- 'GeistMono Nerd Font'
 config.font = wezterm.font_with_fallback({
-  -- "DroidSansM Nerd Font",
-  "GeistMono Nerd Font",
+  'GeistMono Nerd Font',
+  'NotoSansBamum',          -- Your primary font
+  'Symbols Nerd Font',       -- Explicit icon fallback
+  'Noto Color Emoji',        -- Emoji fallback
 })
 
 config.font_size = 12
+
 config.cell_width = 1.00 -- ≈ adjust-cell-width = "-1%"
 config.line_height = 1.05 -- ≈ adjust-cell-height = "10%"
 

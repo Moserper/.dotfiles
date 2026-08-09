@@ -161,4 +161,23 @@ return {
       end
     end),
   },
+
+  -- ⌘O → copy the current window's "<seq>:<window-name>" to clipboard. tmux can't
+  -- see Cmd, so forward prefix+y (prefix = backtick) → tmux `bind y` run-shell → pbcopy.
+  -- Internal key is y (yank mnemonic), NOT o — plain o/C-o/M-o are tmux defaults (pane
+  -- cycle / window rotate), same "Mac accelerator needn't match internal key" trick as
+  -- ⌘R → prefix+k. Guarded to tmux only, like ⌘J/⌘R/⌘E: outside tmux, ⌘O is swallowed.
+  {
+    key = 'phys:O', -- physical key (see phys:J note above re: Thai layout). ONE entry is
+    mods = 'CMD',   -- enough: `wezterm show-keys --lua` has no built-in SUPER-o to shadow it.
+    action = wezterm.action_callback(function(win, pane)
+      local proc = pane:get_foreground_process_name() or ''
+      if proc:match 'tmux' then
+        win:perform_action(act.Multiple {
+          act.SendKey { key = '`' }, -- tmux prefix
+          act.SendKey { key = 'y' }, -- tmux `bind y` → run-shell → pbcopy
+        }, pane)
+      end
+    end),
+  },
 }
