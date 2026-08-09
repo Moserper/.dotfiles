@@ -32,6 +32,21 @@
 #            layout (fzf defaults, not remapped by any keyboard layout) — the
 #            fallback if a bind ever mismatches a layout. See ~/.config/wezterm/keys.lua
 #            phys:J comment for the same Thai-layout-eats-the-key root cause.
+#   p      : cycle preview size, half (default, right 60% of width — leaves the
+#            list usable) <-> full (right 99%, fzf's own size cap — for
+#            inspecting a pane closely; at 99% the list itself is nearly invisible).
+#            Same Thai-layout problem as j/k: physical p sends
+#            ย (yo yak) under Kedmanee, so both chars are bound (and both
+#            unbound/rebound alongside j,k on the ctrl-s search toggle below).
+#   q      : quit, same as esc. Physical q sends ๆ (mai yamok) under Kedmanee, so
+#            both chars are bound (and both unbound/rebound with the rest on
+#            ctrl-s, so "q"/"ๆ" can still be typed into a search query).
+# STARTUP CURSOR: session view (the default view at launch) opens with the
+# cursor already on the CURRENT session's row, not row 1 — found by matching
+# the session name against field-2 of each row, then placed via --sync +
+# start:pos(N) (--sync so the start event sees the fully-loaded list; fzf
+# consumes its input stream asynchronously otherwise). Falls back to row 1 if
+# the current session can't be resolved or isn't in the list.
 set -euo pipefail
 
 [ -n "${TMUX:-}" ] || { echo "tmux-switch: run inside tmux" >&2; exit 1; }
@@ -48,12 +63,19 @@ emit_rows() {
   now=$(date +%s)
   # sticky column-header row (--header-lines=1). Empty field-1 so --with-nth='2..'
   # strips it just like the data rows, keeping the labels column-aligned.
+  # column widths: SESSION/WHERE given generous, deliberate breathing room —
+  # not sized to today's longest name (24 chars, "bestfitt-kitchen-flutter");
+  # the popup has ~240 cols of measured slack, so these just spend some of it
+  # rather than pinch-fitting. WHERE (win view) is <session>:<window_index>,
+  # a few chars longer than the bare session name, so it gets its own wider
+  # column — keep in sync with the two data printfs in the awk END block
+  # below (4 occurrences total, header+data per view).
   case "$mode" in
-    session) printf '\t%-22s %-12s %-8s %-5s %-5s %s\n' SESSION ATTACHED APP AGE WIN FLAG ;;
-    *)       printf '\t%-22s %-18s %-8s %-5s %s\n'       WHERE WINDOW-NAME APP AGE FLAG ;;
+    session) printf '\t%-36s %-12s %-8s %-5s %-5s %s\n' SESSION ATTACHED APP AGE WIN FLAG ;;
+    *)       printf '\t%-40s %-18s %-8s %-5s %s\n'       WHERE WINDOW-NAME APP AGE FLAG ;;
   esac
   tmux list-panes -a -F \
-    '#{pane_id}	#{session_name}	#{window_index}	#{pane_current_command}	#{window_activity}	#{pane_title}	#{host}	#{pane_active}	#{window_active}	#{window_name}	#{session_attached}	#{@cc_wait}	#{@cc_done}	#{session_id}' \
+    '#{pane_id}	#{session_name}	#{window_index}	#{pane_current_command}	#{window_activity}	#{pane_title}	#{host}	#{pane_active}	#{window_active}	#{window_name}	#{session_attached}	#{@cc_wait}	#{@cc_done}	#{session_id}	#{@cc_processing}' \
   | awk -F'\t' -v now="$now" -v mode="$mode" -v filt="$filt" '
       function age(t,  d){ if(t==""||t+0==0)return "-"; d=now-t; if(d<0)d=0;
         return d<60? d"s" : (d<3600? int(d/60)"m" : (d<86400? int(d/3600)"h" : int(d/86400)"d")) }
@@ -61,12 +83,13 @@ emit_rows() {
         # win view is always scoped to one session: skip panes from other sessions.
         if (mode=="win" && filt!="" && $2!=filt) next
         pid=$1; sess=$2; widx=$3; app=$4; wact=$5; title=$6; host=$7
-        pa=$8; wa=$9; wname=$10; satt=$11; cw=$12; cd=$13; sid=$14; sub(/\$/,"",sid)
+        pa=$8; wa=$9; wname=$10; satt=$11; cw=$12; cd=$13; sid=$14; cp=$15; sub(/\$/,"",sid)
         if (app ~ /^[0-9]+\.[0-9]+/) app="claude"
         if (title==host || title=="") title="-"
         # @cc_wait/@cc_done are window options carrying " ❓"/" 🤖" (leading space);
         # treat any non-blank value as "set".
         waitf=(cw ~ /[^[:space:]]/)?1:0; donef=(cd ~ /[^[:space:]]/)?1:0
+        procf=(cp ~ /[^[:space:]]/)?1:0
 
         if (mode=="session") {
           k=sess
@@ -75,14 +98,22 @@ emit_rows() {
           if (!(wk in swseen)) { swseen[wk]=1; swin[k]++ }
           if (wact+0 > sact[k]+0) sact[k]=wact
           satt_[k]=satt; ssid[k]=sid
-          if (waitf) swait[k]=1; if (donef) sdone[k]=1
-          if ((wa==1 && pa==1) || !(k in spid)) { spid[k]=pid; sapp[k]=app }
+          if (waitf) swait[k]=1; if (procf) sproc[k]=1; if (donef) sdone[k]=1
+          # representative pane for this session row (drives preview + Enter-jump):
+          # precedence wait-window > done-window > current-window active pane (the old
+          # default) > first pane seen — so a flag earned on window 2 does not jump you
+          # to window 1 just because that is the session current window. cw/cd are
+          # window options, so they already reflect the window of the current pane, not
+          # the session as a whole. Ties (e.g. two panes in the same flagged window)
+          # prefer the active pane of that window (pa==1), matching win view wpid logic.
+          lvl=waitf?3:(donef?2:((wa==1&&pa==1)?1:0))
+          if (!(k in spid) || lvl>spid_lvl[k] || (lvl==spid_lvl[k] && pa==1)) { spid[k]=pid; sapp[k]=app; spid_lvl[k]=lvl }
         }
         else { # win
           k=sess SUBSEP widx
           if (!(k in worder)) { worder[k]=++wn; wseq[wn]=k }
           wact_[k]=wact; wsess[k]=sess; wwidx[k]=widx
-          if (waitf) wwait[k]=1; if (donef) wdone[k]=1
+          if (waitf) wwait[k]=1; if (procf) wproc[k]=1; if (donef) wdone[k]=1
           if (pa==1 || !(k in wpid)) { wpid[k]=pid; wapp[k]=app
             wnm[k]=(wname!=""?wname:title) }
         }
@@ -94,19 +125,19 @@ emit_rows() {
             # sort-key in the printf below. The ❓/🤖 flag is still shown in the FLAG
             # column but no longer floats the row to the top (pri kept only for win view).
             atn=swait[k]?0:(sdone[k]?1:2); pri=atn*2+((sapp[k]=="claude")?0:1)
-            mark=swait[k]?"❓":(sdone[k]?"🤖":"-")
+            mark=swait[k]?"❓":(sproc[k]?"⏳":(sdone[k]?"🤖":"-"))
             # BSD awk pads %-Ns by BYTES; "● attached" is 12 bytes but 10 columns
             # wide, so pad the ATTACHED field to 12 *visual* cols by hand.
             if (satt_[k]+0>0) { att="● attached"; aw=10 } else { att="-"; aw=1 }
-            printf "%d\t%s\t%-22s %s%*s %-8s %-5s %-5s %s\n", \
+            printf "%d\t%s\t%-36s %s%*s %-8s %-5s %-5s %s\n", \
               ssid[k], spid[k], k, att, 12-aw, "", sapp[k], age(sact[k]), (swin[k]"win"), mark }
         } else {
           for (i=1;i<=wn;i++){ k=wseq[i]
             # win view sorts by window index (numeric, ascending). The ❓/🤖 flag is
             # still shown in the FLAG column but no longer floats the row to the top.
             atn=wwait[k]?0:(wdone[k]?1:2); pri=atn*2+((wapp[k]=="claude")?0:1)
-            mark=wwait[k]?"❓":(wdone[k]?"🤖":"-")
-            printf "%d\t%s\t%-22s %-18s %-8s %-5s %s\n", \
+            mark=wwait[k]?"❓":(wproc[k]?"⏳":(wdone[k]?"🤖":"-"))
+            printf "%d\t%s\t%-40s %-18s %-8s %-5s %s\n", \
               wwidx[k], wpid[k], wsess[k]":"wwidx[k], wnm[k], wapp[k], age(wact_[k]), mark }
         }
       }' \
@@ -139,20 +170,42 @@ stty -ixon </dev/tty >/dev/null 2>&1 || true
 rows=$(emit_rows session)
 [ -n "$rows" ] || { echo "no live windows"; exit 0; }
 
+# 1-based index (over DATA rows only — --header-lines=1 already strips the
+# header from fzf's list) of the current session's row, for the startup cursor
+# below. Session name is the first whitespace token of field 2 (the
+# padded name — see emit_rows' column-width comment above). Never derive
+# "current" from $TMUX — stale after popup creation; ask tmux fresh. Falls
+# back to 1 (top) if unresolved or not found.
+start_pos=1
+if cur_sess=$(tmux display-message -p '#{session_name}' 2>/dev/null) && [ -n "$cur_sess" ]; then
+  idx=$(printf '%s\n' "$rows" | tail -n +2 | cut -f2 | awk -v s="$cur_sess" '{split($0,a," ")} a[1]==s{print NR; exit}') || true
+  start_pos=${idx:-1}
+fi
+
+        # --preview='tmux capture-pane -ep -t {1} | sed "/^[[:space:]]*$/d" | tail -n "${FZF_PREVIEW_LINES:-10}"' \
+        # --preview-window='up,99%,nowrap' \
 # field 1 (active pane id) is the action target, hidden from view; field 2.. shown.
 # preview is the highlighted target's active-pane live screen.
-sel=$(printf '%s\n' "$rows" | fzf --no-sort --no-input \
+
+prefix_session='view: [session]'
+prefix_window='view: [window]'
+header=$' · Tab drill into session \nj/k move · Ctrl-s search · ⌘O copy \nCtrl-x kill session · Enter switch · q/esc quit'
+sel=$(printf '%s\n' "$rows" | FZF_DEFAULT_OPTS='' fzf --layout=reverse --no-sort --no-input --sync \
         --delimiter=$'\t' --with-nth='2..' --header-lines=1 \
         --prompt='switch [session] ❯ ' \
-        --header='view: sessions · Tab drill into session · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill session · Enter switch · esc quit' \
+        --header="$prefix_session$header" \
+        --bind="start:pos($start_pos)" \
         --preview='tmux capture-pane -ep -t {1} | sed "/^[[:space:]]*$/d" | tail -n "${FZF_PREVIEW_LINES:-40}"' \
-        --preview-window='right,60%,nowrap' \
+        --preview-window='up,65%,nowrap' \
+        --list-border \
+        --color='preview-border:blue' \
         --bind='ctrl-w:toggle-preview-wrap' \
         --bind='j:down' --bind='k:up' \
         --bind='่:down' --bind='า:up' \
-        --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า)+hide-input'; else echo 'show-input+unbind(j,k,่,า)+pos(1)'; fi" \
+        --bind='q:abort' --bind='ๆ:abort' \
+        --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า,p,ย,q,ๆ)+hide-input'; else echo 'show-input+unbind(j,k,่,า,p,ย,q,ๆ)+pos(1)'; fi" \
         --bind='ctrl-o:execute-silent(name=$(tmux display-message -p -t {1} "#{session_name}:#{window_name}"); printf %s "$name" | pbcopy; tmux display-message "copied: $name")' \
-        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); printf 'change-prompt(switch [win:%s] ❯ )+change-header(view: %s windows · Tab back to sessions · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill window · Enter switch · esc quit)+reload($SELF __rows win:%s)' \"\$s\" \"\$s\" \"\$s\"; else printf 'change-prompt(switch [session] ❯ )+change-header(view: sessions · Tab drill into session · j/k move · Ctrl-s search · ⌘O copy · Ctrl-x kill session · Enter switch · esc quit)+reload($SELF __rows session)'; fi" \
+        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); printf 'change-prompt(switch [win:%s] ❯ )+change-header($prefix_window$header)+reload($SELF __rows win:%s)' \"\$s\" \"\$s\"; else printf 'change-prompt(switch [session] ❯ )+change-header($prefix_session$header)+reload($SELF __rows session)'; fi" \
         --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-session}") || exit 0
 [ -n "$sel" ] || exit 0
 
