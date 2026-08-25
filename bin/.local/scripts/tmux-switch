@@ -72,7 +72,13 @@ emit_rows() {
   # the cursor instead of leaving them in the order you expect to keep killing.
   active_widx=""
   if [ "$mode" = win ] && [ -n "$filt" ] && [ -n "$pin" ]; then
-    active_widx=$(tmux display-message -p -t "$filt" '#{window_index}' 2>/dev/null) || active_widx=""
+    # trailing colon forces "session:<empty window>" parsing — without it, a
+    # session whose name collides with one of its own window names (e.g.
+    # session "agent-os" containing a window also named "agent-os") makes tmux
+    # resolve -t to that WINDOW instead of the session's actual active window,
+    # silently pinning the wrong one (verified live 2026-08-25 on the real
+    # `agent-os` fleet session).
+    active_widx=$(tmux display-message -p -t "$filt:" '#{window_index}' 2>/dev/null) || active_widx=""
   fi
   case "$pin" in *[!0-9]*) pin= ;; esac
   # sticky column-header row (--header-lines=1). Empty field-1 so --with-nth='2..'
