@@ -190,6 +190,8 @@ fi
 prefix_session='view: [session]'
 prefix_window='view: [window]'
 header=$' · Tab drill into session \nj/k move · Ctrl-s search · ⌘O copy \nCtrl-x kill session · Enter switch · q/esc quit'
+# TAB CURSOR mirrors the STARTUP CURSOR trick, but resolves the drilled session's
+# active window live inside tab:transform because neither is fixed at launch.
 sel=$(printf '%s\n' "$rows" | FZF_DEFAULT_OPTS='' fzf --layout=reverse --no-sort --no-input --sync \
         --delimiter=$'\t' --with-nth='2..' --header-lines=1 \
         --prompt='switch [session] ❯ ' \
@@ -205,7 +207,7 @@ sel=$(printf '%s\n' "$rows" | FZF_DEFAULT_OPTS='' fzf --layout=reverse --no-sort
         --bind='q:abort' --bind='ๆ:abort' \
         --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า,p,ย,q,ๆ)+hide-input'; else echo 'show-input+unbind(j,k,่,า,p,ย,q,ๆ)+pos(1)'; fi" \
         --bind='ctrl-o:execute-silent(name=$(tmux display-message -p -t {1} "#{session_name}:#{window_name}"); printf %s "$name" | pbcopy; tmux display-message "copied: $name")' \
-        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); printf 'change-prompt(switch [win:%s] ❯ )+change-header($prefix_window$header)+reload($SELF __rows win:%s)' \"\$s\" \"\$s\"; else printf 'change-prompt(switch [session] ❯ )+change-header($prefix_session$header)+reload($SELF __rows session)'; fi" \
+        --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); pos=; if widx=\$(tmux display-message -p -t \"\$s\" '#{window_index}' 2>/dev/null) && [ -n \"\$widx\" ]; then idx=\$($SELF __rows win:\"\$s\" | tail -n +2 | cut -f2 | awk -v w=\"\$s:\$widx\" '{split(\$0,a,\" \")} a[1]==w{print NR; exit}'); [ -n \"\$idx\" ] && pos=\"+pos(\$idx)\"; fi; printf 'change-prompt(switch [win:%s] ❯ )+change-header($prefix_window$header)+reload($SELF __rows win:%s)%s' \"\$s\" \"\$s\" \"\$pos\"; else printf 'change-prompt(switch [session] ❯ )+change-header($prefix_session$header)+reload($SELF __rows session)'; fi" \
         --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-session}") || exit 0
 [ -n "$sel" ] || exit 0
 
