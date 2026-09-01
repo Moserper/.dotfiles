@@ -9,20 +9,18 @@ status.register()
 
 
 -- Fonts
-
--- 'DroidSansM Nerd Font'
--- 'GeistMono Nerd Font'
+ -- 'DroidSansM Nerd Font'
+ -- 'GeistMono Nerd Font'
 config.font = wezterm.font_with_fallback({
   'GeistMono Nerd Font',
-  'NotoSansBamum',          -- Your primary font
-  'Symbols Nerd Font',       -- Explicit icon fallback
-  'Noto Color Emoji',        -- Emoji fallback
+  'Symbols Nerd Font Mono',
 })
 
 config.font_size = 12
 
-config.cell_width = 1.00 -- ≈ adjust-cell-width = "-1%"
-config.line_height = 1.05 -- ≈ adjust-cell-height = "10%"
+config.cell_width = 1.05
+config.line_height = 1.10
+config.use_cap_height_to_scale_fallback_fonts = true
 
 -- Colors
 config.colors = theme.colors

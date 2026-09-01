@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+# Tab completion for Claude Code. Written by hand because the CLI (Commander.js)
+# ships no `completion` subcommand, so carapace has nothing to bridge to and
+# `claude` gets NO completion at all (carapace compdefs per-command; `-default-`
+# stays `_default`). Scope is deliberately minimum-viable: the subcommands plus
+# the flags actually typed day to day — `claude --help` has ~60 flags and an
+# exhaustive spec drifts on every Claude Code update.
+# After editing: `exec zsh` — carapace binds compdef at init and never reloads.
+# ALWAYS validate an edit with:  carapace claude zsh claude ''
+# ONE bad flag line zeroes out the WHOLE spec's candidates, not just that flag —
+# carapace takes only `-s, --long` (short-then-long); two long aliases is a
+# syntax error. `--bg, --background` cost a debug loop; `--allowedTools,
+# --allowed-tools` and `--plugin|--plugins` in the real CLI are the same trap.
+name: claude
+description: Claude Code — agentic coding CLI
+flags:
+  -c, --continue: continue the most recent conversation in this directory
+  -r, --resume=?: resume a session by id, or pick from a list
+  -p, --print: non-interactive output
+  -d, --debug=?: enable debug mode
+  -v, --version: print version
+  -h, --help: show help
+  -n, --name=: name for the session
+  -w, --worktree=?: run in a git worktree
+  --model=: model for the current session
+  --fallback-model=: model to fall back to when the primary is overloaded
+  --agent=: agent for the current session
+  --add-dir*=: additional directories to allow tool access to
+  --permission-mode=: permission mode for the session
+  --output-format=: output format (with --print)
+  --input-format=: input format (with --print)
+  --settings=: settings file path or JSON
+  --mcp-config*=: load MCP servers from a JSON file or string
+  --plugin-dir*=: load plugins from a local directory
+  --effort=: reasoning effort
+  --session-id=: use a specific session id
+  --fork-session: fork instead of resuming in place
+  --verbose: override verbose mode setting
+  --bg: start as a background agent and return immediately (alias --background)
+  --bare: minimal mode — skip hooks, LSP, plugin sync, auto-memory
+  --restricted: remove the built-in command/code-running tools
+  --dangerously-skip-permissions: bypass all permission checks
+  --tmux: open in a new tmux window
+  --teleport=?: teleport into a session
+  --cloud=?: create or attach to a cloud session
+  --from-pr=?: resume a session linked to a PR
+completion:
+  flag:
+    model: ["opus", "sonnet", "haiku", "fable"]
+    fallback-model: ["opus", "sonnet", "haiku", "fable"]
+    permission-mode:
+      - "acceptEdits\tauto-accept file edits"
+      - "auto\tlet Claude decide"
+      - "bypassPermissions\task for nothing"
+      - "manual\tprompt for everything"
+      - "dontAsk\tno prompts, no bypass"
+      - "plan\tread-only planning"
+    output-format: ["text", "json", "stream-json"]
+    input-format: ["text", "stream-json"]
+    effort: ["low", "medium", "high", "xhigh", "max"]
+    add-dir: ["$directories"]
+    plugin-dir: ["$directories"]
+    settings: ["$files"]
+    mcp-config: ["$files"]
+    worktree: ["$directories"]
+commands:
+  - name: agents
+    description: manage background agents
+  - name: auth
+    description: manage authentication
+  - name: auto-mode
+    description: inspect or reset auto mode classifier configuration
+  - name: doctor
+    description: check the health of your Claude Code installation
+  - name: gateway
+    description: run the enterprise auth/telemetry gateway
+  - name: import
+    description: import config from another AI coding agent
+  - name: install
+    description: install Claude Code native build
+    completion:
+      positional:
+        - ["stable", "latest"]
+  - name: mcp
+    description: configure and manage MCP servers
+  - name: plugin
+    aliases: [plugins]
+    description: manage Claude Code plugins
+  - name: project
+    description: manage Claude Code project state
+  - name: setup-token
+    description: set up a long-lived authentication token
+  - name: ultrareview
+    description: cloud-hosted multi-agent code review of the current branch
+  - name: update
+    aliases: [upgrade]
+    description: check for updates and install if available

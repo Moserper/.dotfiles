@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+# Tab completion for maw (~/.claude/bin/maw). Dynamic values come from the
+# hidden `maw _complete agents|groups` subcommand — edit maw, not this file,
+# when the candidate lists need to change.
+name: maw
+description: agent-to-agent messaging over tmux panes + file inbox
+commands:
+  - name: hey
+    description: send a message to an agent/window/pane
+    completion:
+      positional:
+        - ["$(maw _complete agents)"]
+  - name: ls
+    description: fleet view — every tmux pane
+  - name: who
+    description: registered agents only (named panes)
+  - name: peek
+    description: show last N lines of target's screen
+    completion:
+      positional:
+        - ["$(maw _complete agents)"]
+  - name: inbox
+    description: list unread messages in YOUR inbox
+  - name: name
+    description: name the current pane
+  - name: snapshot
+    description: list live claude panes
+    flags:
+      --all: also closed sessions
+      --closed: only closed sessions
+  - name: search
+    description: find a session (live + closed) by keyword
+  - name: resume
+    description: list sessions, or reopen/switch to row N
+    flags:
+      --all: bulk-open every recent closed session
+  - name: wake
+    description: spawn a fresh claude fed a first prompt
+    flags:
+      -c=: working directory
+      -m=: model
+    completion:
+      flag:
+        c: ["$directories"]
+        m: ["opus", "sonnet", "haiku", "fable"]
+  - name: new
+    description: spawn a fresh named claude, no prompt
+    flags:
+      -c=: working directory
+    completion:
+      flag:
+        c: ["$directories"]
+      positional:
+        - []
+  - name: save
+    description: tag the current pane's session into a Group
+    flags:
+      --all: capture every live claude pane in this tmux session
+      --rm=: drop a Group
+    completion:
+      flag:
+        rm: ["$(maw _complete groups)"]
+      positional:
+        - ["$(maw _complete groups)"]
+  - name: saves
+    description: list saved Groups
+  - name: done
+    description: gracefully close a session + clear it from registries
+    completion:
+      positional:
+        - ["$(maw _complete agents)"]
+  - name: restore
+    description: bring a Group back into a tmux session
+    flags:
+      --pick: fzf picker over all groups
+    completion:
+      positional:
+        - ["$(maw _complete groups)"]
+  - name: tidy
+    description: sweep dead agents' inbox dirs
+    flags:
+      --yes: remove stale (dead, no unread)
+      --force: also remove held (unread mail)
+  - name: help
+    description: show usage

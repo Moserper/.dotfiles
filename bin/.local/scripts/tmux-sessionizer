@@ -5,7 +5,9 @@ search_dir=${SESSIONIZER_DIR:-~/w/d}
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(find "$search_dir" -mindepth 1 -maxdepth 2 -type d | fzf)
+    selected=$(find "$search_dir" -mindepth 1 -maxdepth 4 \
+        \( -name 'Library' -o -name 'node_modules' -o -name '.git' -o -name '.Trash' \) -prune -o \
+        -type d -print 2> /dev/null | fzf)
 fi
 
 if [[ -z $selected ]]; then

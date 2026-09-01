@@ -244,3 +244,30 @@ gcp_project() {
 add_ssh_key() {
   ssh-add --apple-use-keychain ~/.ssh/id_rsa_bitbucket_work && ssh-add --apple-use-keychain ~/.ssh/id_rsa_github_work && ssh-add --apple-use-keychain ~/.ssh/github
 }
+
+history_purge() {
+  local patterns=(
+    "claude"
+    "echo"
+    "ls"
+    "grep"
+    "codex"
+    "maw"
+    "vhistory"
+    "history_purge"
+  )
+
+  local histfile="${HISTFILE:-$HOME/.zsh_history}"
+  local pattern
+
+  fc -W "$histfile"
+
+  for pattern in "${patterns[@]}"; do
+    echo "--- removing lines matching: $pattern ---"
+    grep -- "$pattern" "$histfile"
+    grep -v -- "$pattern" "$histfile" > "${histfile}.tmp" && mv "${histfile}.tmp" "$histfile"
+  done
+
+  fc -R "$histfile"
+  echo "Purged patterns from $histfile: ${patterns[*]}"
+}

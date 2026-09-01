@@ -173,14 +173,14 @@ export PATH="$HOME/.local/scripts:$PATH"
 
 # Added by Antigravity IDE
 export PATH="/Users/pathomporn.s/.antigravity-ide/antigravity-ide/bin:$PATH"
-# agent-os tooling (~/.agent-shared/bin + ~/.claude/bin) moved to .zshenv on
+# agent-os tooling (~/agent-os/shared/symlink/bin + ~/agent-os/claude/symlink/bin) moved to .zshenv on
 # 2026-08-09 — agents invoke `maw`/`memory-index-gen` from non-interactive tool
 # shells, which never source this file. See ~/.dotfiles/zsh/.zshenv.
 
 # Keep `maw wake …` out of shell history (2026-07-30). A wake line is a one-shot spawn
 # carrying a long task prompt: it crowds out ↑-search and is never worth re-running
 # verbatim (the worker it spawned already exists). Full grounding, with man-page and
-# zsh-5.9 source citations: ~/m/agent-os/docs/zsh-history-research-2026-07-30.md
+# zsh-5.9 source citations: ~/agent-os/docs/zsh-history-research-2026-07-30.md
 #
 # BOTH mechanisms on purpose — they cover different halves, neither is redundant:
 #   * the hook keeps the line out of THIS shell's in-memory ring (↑ / Ctrl-R / fzf).
@@ -218,3 +218,65 @@ _zsh_skip_maw_wake_history() {
   [[ $1 != ${~HISTORY_IGNORE} ]]
 }
 add-zsh-hook zshaddhistory _zsh_skip_maw_wake_history
+
+# claude wrapper (2026-08-11, migrated off pass/gpg same day): honor
+# `maw account use <name>` for a plain, hand-typed `claude` too — until now
+# only `maw wake`/`maw new` read the account state file; a shell the user
+# launches themselves always fell back to the native Keychain login. A
+# FUNCTION, not an export at shell startup, on purpose: exporting
+# CLAUDE_CODE_OAUTH_TOKEN at rc time would resolve the token on EVERY new
+# shell — every tmux pane on this box — for no reason if that shell never
+# even runs `claude`. Resolving only when `claude` actually runs keeps that
+# work (now a `security` Keychain read, originally a `pass show`/gpg-agent
+# call that could fire a pinentry prompt) to at most once per launch.
+# Mirrors bin/maw's ACCOUNT_STATE_FILE / MAW_ACCOUNT_STATE override (see
+# _effective_account there) but reads ONLY the state file, not maw's full
+# 4-level wake/new precedence — a hand-typed `claude` has no "spawning pane"
+# to inherit an account from. The Keychain service name (maw-claude-account)
+# is a literal duplicate of bin/maw's $ACCOUNT_KC_SERVICE default — this is a
+# standalone rc file with no way to source that script's vars, so the two
+# must be kept in sync by hand if the service name ever changes.
+# Guarded to interactive shells: .zshrc itself is only sourced by interactive
+# zsh (scripts/hooks/cron source .zshenv only), plus this explicit check as
+# belt-and-braces in case something ever sources .zshrc non-interactively.
+claude() {
+  if [[ ! -o interactive ]]; then
+    command claude "$@"
+    return
+  fi
+
+  # Already set — most notably `maw wake -a <acct>` types a launch line that
+  # prefixes BOTH vars itself (`CLAUDE_TOKEN_NAME=x CLAUDE_CODE_OAUTH_TOKEN="..." claude …`);
+  # that must keep working unchanged, so never resolve/override when a token
+  # is already present in the environment (verified empirically 2026-08-11:
+  # a zsh prefix assignment in front of a function call IS visible inside it
+  # and IS inherited by any external command the function execs).
+  if [[ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]]; then
+    local _claude_acct_file="${MAW_ACCOUNT_STATE:-$HOME/agent-os/.runtime/maw-account}"
+    local _claude_acct=""
+    [[ -f "$_claude_acct_file" ]] && _claude_acct="$(<"$_claude_acct_file")"
+
+    if [[ -n "$_claude_acct" && "$_claude_acct" != native ]]; then
+      local _claude_tok
+      # -w with no value on the READ side just means "print only the
+      # password" (no getpass prompt on this path — that's an add-side-only
+      # quirk, see bin/maw's cmd_account_add). Existence + decrypt happen in
+      # one call; a locked keychain or a since-removed item both surface as
+      # empty stdout + nonzero exit here, handled identically below.
+      if _claude_tok="$(security find-generic-password -s maw-claude-account -a "$_claude_acct" -w 2>/dev/null)" && [[ -n "$_claude_tok" ]]; then
+        CLAUDE_TOKEN_NAME="$_claude_acct" CLAUDE_CODE_OAUTH_TOKEN="$_claude_tok" command claude "$@"
+        return
+      fi
+      # Losing the editor because a secret store hiccuped (locked keychain,
+      # token removed behind the state file's back) is far worse than
+      # silently billing the wrong account — warn and fall through to native
+      # rather than block the launch.
+      print -u2 "claude: couldn't read token for account '$_claude_acct' from the Keychain (locked/missing?) — falling back to native login"
+    fi
+  fi
+
+  command claude "$@"
+}
+
+# fzf shell integration (completion + key bindings)
+eval "$(fzf --zsh)"

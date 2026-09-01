@@ -156,8 +156,8 @@ customCommands:
     output: terminal
   - key: '<c-t>'
     context: 'global'
-    description: 'Open tig'
-    command: 'tig'
+    description: 'Open tig (all refs)'
+    command: 'tig --all'
     output: terminal
   - key: '<c-e>'
     context: 'global'
