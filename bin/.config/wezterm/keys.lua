@@ -142,6 +142,30 @@ return {
     end),
   },
 
+  -- ⌘S → open macOS Finder at the CURRENT pane's path, in OR out of tmux.
+  --   inside tmux: tmux can't see Cmd, so forward prefix+C-g (prefix = backtick) →
+  --                tmux `bind C-g` run-shell `open '#{pane_current_path}'`. Internal key
+  --                is C-g, NOT s: `bind s` is tmux's default choose-tree. Same "Mac accelerator needn't
+  --                match internal key" trick as ⌘R → prefix+k.
+  --   outside tmux: WezTerm runs `open <cwd>` itself.
+  {
+    key = 'phys:S', -- physical key (see phys:J note above re: Thai layout). ONE entry is
+    mods = 'CMD',   -- enough: `wezterm show-keys --lua` has no built-in SUPER-s to shadow it.
+    action = wezterm.action_callback(function(win, pane)
+      local proc = pane:get_foreground_process_name() or ''
+      if proc:match 'tmux' then
+        win:perform_action(act.Multiple {
+          act.SendKey { key = '`' }, -- tmux prefix
+          act.SendKey { key = 'g', mods = 'CTRL' }, -- tmux `bind C-g` → run-shell → open Finder
+        }, pane)
+      else
+        local cwd = pane:get_current_working_dir()
+        if type(cwd) == 'userdata' then cwd = cwd.file_path end
+        wezterm.background_child_process { '/usr/bin/open', cwd or wezterm.home_dir }
+      end
+    end),
+  },
+
   -- ⌘E → open the editor at the CURRENT pane's path. tmux can't see Cmd, so forward
   -- prefix+C-e (prefix = backtick) → tmux `bind C-e` run-shell → the zsh alias `c`.
   -- NB the forwarded key is C-e, NOT e: tmux's `bind e` is send-prefix (the literal-backtick
