@@ -5,3 +5,7 @@ export EDITOR='vim'
 export PATH="$PATH:$HOME/.rvm/bin"
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/pathomporn.s/.local/bin:$PATH"

@@ -280,3 +280,7 @@ claude() {
 
 # fzf shell integration (completion + key bindings)
 eval "$(fzf --zsh)"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/pathomporn.s/.local/bin:$PATH"

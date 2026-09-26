@@ -134,3 +134,7 @@ bindkey '^[]' fzf-cd-widget
 # bindkey "^[f" forward-char
 bindkey "^[e" redo
 bindkey "^[u" undo
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/pathomporn.s/.local/bin:$PATH"

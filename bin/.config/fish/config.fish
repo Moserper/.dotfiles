@@ -32,3 +32,7 @@ set -gx SOURCE_FUNCTION_FISH $HOME/.dotfiles/terminal/fish
 echo $SOURCE_FUNCTION_FISH
 
 source $SOURCE_FUNCTION_FISH/.init.fish
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/Users/pathomporn.s/.local/bin" $PATH
