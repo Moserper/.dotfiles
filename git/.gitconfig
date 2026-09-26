@@ -55,11 +55,13 @@
 	autoSetupRemote = true
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [includeIf "gitdir:~/"]
-    path = ~/.gitconfig-personal
+  path = ~/.gitconfig-personal
 [includeIf "gitdir:~/w/"]
-    path = ~/.gitconfig-work
+  path = ~/.gitconfig-work
+# [includeIf "gitdir:~/w/d/mts/"]
+#   path = ~/.gitconfig-work-mts
 [credential]
 	helper = osxkeychain
 # [diff]

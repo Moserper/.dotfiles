@@ -242,7 +242,9 @@ gcp_project() {
 }
 
 add_ssh_key() {
-  ssh-add --apple-use-keychain ~/.ssh/id_rsa_bitbucket_work && ssh-add --apple-use-keychain ~/.ssh/id_rsa_github_work && ssh-add --apple-use-keychain ~/.ssh/github
+  ssh-add --apple-use-keychain ~/.ssh/id_rsa_bitbucket_work &&
+  ssh-add --apple-use-keychain ~/.ssh/id_rsa_github_work &&
+  ssh-add --apple-use-keychain ~/.ssh/github
 }
 
 history_purge() {
