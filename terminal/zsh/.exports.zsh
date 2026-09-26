@@ -32,8 +32,9 @@ export PATH=$PATH:$(go env GOPATH)/bin
 # export PATH="$(yarn global bin):$PATH"
 
 # java
-# export JAVA_HOME="/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home"
-export JAVA_HOME="/opt/homebrew/opt/openjdk/bin/java"
+export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+export ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools
 export PATH="${JAVA_HOME}/bin:${PATH}"
 export PATH="${HOMEBREW_PREFIX}/opt/openjdk/bin:$PATH"
 
@@ -43,7 +44,7 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 # export DOCKER_DEFAULT_PLATFORM=linux/arm64
 
 # # nvm
-# export NVM_DIR="$HOME/.nvm"
+  # export NVM_DIR="$HOME/.nvm"
 #   [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
 #   [ -s "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${HOMEBREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
