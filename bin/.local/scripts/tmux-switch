@@ -38,6 +38,14 @@
 #            Same Thai-layout problem as j/k: physical p sends
 #            ย (yo yak) under Kedmanee, so both chars are bound (and both
 #            unbound/rebound alongside j,k on the ctrl-s search toggle below).
+#   m      : MOVE the highlighted window into the session ⌘J was launched from
+#            (`move-window -d -s {1} -t <cur>:` — next free index, -d = stays in the
+#            background so q/esc still returns you where you were). Window view
+#            only; in session view it just flashes a hint (the session row's {1} is
+#            merely its active window, moving that would surprise). No-op with a
+#            message when the window is already in the current session. Physical m
+#            sends ท (tho thahan) under Kedmanee, so both chars are bound (and
+#            unbound/rebound with the rest on ctrl-s).
 #   q      : quit, same as esc. Physical q sends ๆ (mai yamok) under Kedmanee, so
 #            both chars are bound (and both unbound/rebound with the rest on
 #            ctrl-s, so "q"/"ๆ" can still be typed into a search query).
@@ -224,7 +232,7 @@ fi
 
 prefix_session='view: [session]'
 prefix_window='view: [window]'
-header=$' · Tab drill into session \nj/k move · Ctrl-s search · ⌘O copy \nCtrl-x kill session · Enter switch · q/esc quit'
+header=$' · Tab drill into session \nj/k move · Ctrl-s search · ⌘O copy · m move here \nCtrl-x kill session · Enter switch · q/esc quit'
 # TAB CURSOR: entering window view lands on the drilled session's active
 # window. Tried a pos() bind first (mirroring STARTUP CURSOR's start:pos(N)
 # trick) but fzf 0.67 silently drops a chained pos() whenever the same
@@ -249,6 +257,9 @@ header=$' · Tab drill into session \nj/k move · Ctrl-s search · ⌘O copy \nC
 # result emits only pos(N) plus an internal trigger; that separate literal bind
 # restores the normal [session] prompt. Keeping change-prompt out of result's
 # transform-emitted action string is load-bearing for the fzf 0.67 quirk above.
+# m / ท: move the highlighted window into the launching session (see key table).
+# Same execute-silent+reload shape as ctrl-x; if/fi only (execute paren-balancing).
+move_action="execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux display-message 'tmux-switch: Tab into a session first, then m on a window'; else here=\$(tmux display-message -p '#{session_name}'); src=\$(tmux display-message -p -t {1} '#{session_name}'); if [ \"\$src\" = \"\$here\" ]; then tmux display-message \"already in \$here\"; else wn=\$(tmux display-message -p -t {1} '#{window_name}'); tmux move-window -d -s {1} -t \"\$here:\" && tmux display-message \"moved \$wn → \$here\"; fi; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-session}"
 sel=$(printf '%s\n' "$rows" | FZF_DEFAULT_OPTS='' fzf --layout=reverse --no-sort --no-input --sync \
         --delimiter=$'\t' --with-nth='2..' --header-lines=1 \
         --prompt='switch [session] ❯ ' \
@@ -262,11 +273,12 @@ sel=$(printf '%s\n' "$rows" | FZF_DEFAULT_OPTS='' fzf --layout=reverse --no-sort
         --bind='j:down' --bind='k:up' \
         --bind='่:down' --bind='า:up' \
         --bind='q:abort' --bind='ๆ:abort' \
-        --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า,p,ย,q,ๆ)+hide-input'; else echo 'show-input+unbind(j,k,่,า,p,ย,q,ๆ)+pos(1)'; fi" \
+        --bind="ctrl-s:transform:if [ \"\$FZF_INPUT_STATE\" = enabled ]; then echo 'rebind(j,k,่,า,p,ย,q,ๆ,m,ท)+hide-input'; else echo 'show-input+unbind(j,k,่,า,p,ย,q,ๆ,m,ท)+pos(1)'; fi" \
         --bind='ctrl-o:execute-silent(name=$(tmux display-message -p -t {1} "#{session_name}:#{window_name}"); printf %s "$name" | pbcopy; tmux display-message "copied: $name")' \
         --bind="tab:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then s=\$(tmux display-message -p -t {1} '#{session_name}'); n={n}; printf 'change-prompt(switch [win:%s] ❯ )+change-header($prefix_window$header)+reload($SELF __rows win:%s %s)' \"\$s\" \"\$s\" \"\$n\"; else s=\${cur#win:}; sid=\$(tmux display-message -p -t \"\$s\" '#{session_id}'); idx=\$(tmux list-sessions -F '#{session_id}' | sort -k1.2n | awk -v sid=\"\$sid\" '\$0==sid{print NR; exit}'); idx=\${idx:-1}; printf 'change-prompt(switch [back:%s] ❯ )+change-header($prefix_session$header)+reload($SELF __rows session)' \"\$idx\"; fi" \
         --bind="result:transform:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\${cur%%:*}\" = back ]; then n=\${cur#back:}; printf 'pos(%s)+trigger(ctrl-alt-z)' \"\$n\"; fi" \
         --bind='ctrl-alt-z:change-prompt(switch [session] ❯ )' \
+        --bind="m:$move_action" --bind="ท:$move_action" \
         --bind="ctrl-x:execute-silent(cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); if [ \"\$cur\" = session ]; then tmux kill-session -t {1}; else tmux kill-window -t {1}; fi)+reload:cur=\$(printf '%s' \"\$FZF_PROMPT\" | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'); $SELF __rows \${cur:-session}") || exit 0
 [ -n "$sel" ] || exit 0
 
