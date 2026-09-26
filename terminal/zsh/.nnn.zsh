@@ -43,7 +43,9 @@ n () {
 
   # The command builtin allows one to alias nnn to n, if desired, without
   # making an infinitely recursive alias
-  command nnn -exR "$@"
+  # -B: use bsdtar (/usr/bin) for `z` archive / Enter→x extract; atool (nnn default) is not installed
+  # PATH prefix: shim/bsdtar strips -v from nnn's hardcoded `bsdtar -acvf` (quiet archive)
+  PATH="${XDG_CONFIG_HOME:-$HOME/.config}/nnn/shim:$PATH" command nnn -exBR "$@"
 
   [ ! -f "$NNN_TMPFILE" ] || {
     . "$NNN_TMPFILE"

@@ -1,0 +1,14 @@
+#!/bin/sh
+# nnn hardcodes `bsdtar -acvf` (z = Archive) and `bsdtar -xvf` (Enter→x = extract), so every
+# file scrolls past on screen. This shim drops the `v` from both; list (-tvf) passes through
+# untouched because its output IS the listing.
+# Reached ONLY via the PATH prefix in the `n` wrapper (~/.dotfiles/terminal/zsh/.nnn.zsh),
+# never system-wide.
+n=$#; i=0
+while [ "$i" -lt "$n" ]; do
+  a=$1; shift
+  case $a in -acvf) a="-acf" ;; -xvf) a="-xf" ;; esac
+  set -- "$@" "$a"
+  i=$((i + 1))
+done
+exec /usr/bin/bsdtar "$@"
