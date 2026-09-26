@@ -22,4 +22,3 @@ M.colors = {
 }
 
 return M
-

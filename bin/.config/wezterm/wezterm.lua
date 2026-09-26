@@ -13,13 +13,14 @@ status.register()
  -- 'GeistMono Nerd Font'
 config.font = wezterm.font_with_fallback({
   'GeistMono Nerd Font',
-  'Symbols Nerd Font Mono',
+  -- 'Symbols Nerd Font Mono',
+   { family = 'Ayuthaya', scale = 1.05 },
 })
 
 config.font_size = 12
 
 config.cell_width = 1.05
-config.line_height = 1.10
+config.line_height = 1.25
 config.use_cap_height_to_scale_fallback_fonts = true
 
 -- Colors
